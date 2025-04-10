@@ -1,5 +1,56 @@
 ---
-title: "thomas_file"
+title: "Investigating Contributing Factors of Obesity in Latin American Countries"
+author: "Lauren Duvall, Shikyna William, Thomas Linden"
+date: "`r Sys.Date()`"
+lang: en
 output: html_document
 ---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+suppressMessages(library(dplyr))    # Data manipulation
+suppressMessages(library(ggplot2))  # Plotting
+suppressMessages(library(readr))    # Reading the dataset
+suppressMessages(library(knitr))    # For clean tables
+```
+
+[Link](https://www.kaggle.com/datasets/adeniranstephen/obesity-prediction-dataset)
+
+## Introduction
+
+This dataset contains mostly synthetically generated data, with some gathered from users via a web platform. The dataset attempts to estimate obesity levels across various health and lifestyle features from individuals in Mexico, Peru, and Columbia.
+
+Although this dataset's primary purpose is to train ML models on obesity data for predictive analytics, the scope of this project is descriptive.
+
+## Load Packages
+```{r}
+library(dplyr)
+```
+
+## Data Cleaning
+```{r}
+raw_data <- read.csv("ObesityDataSet_raw_and_data_sinthetic.csv")
+```
+
+## Summary of Variables
+
+## Exploratory Data Analysis
+
+### Obesity Level Distribution
+
+### Physical Activity vs Obesity Level
+
+### Snacking Habits vs Obesity Level
+
+## Conclusions
+
+### Limitations:
+
+### Future Steps:
+
+## References:
+> Mendoza Palechor, F., & De la Hoz Manotas, A. (2019). Dataset for estimation of obesity levels based on eating habits and physical condition in individuals from Colombia, Peru and Mexico. Data in Brief, 25, 104344. https://doi.org/10.1016/j.dib.2019.104344
+
+> Mendoza Palechor, F., & De la Hoz Manotas, A. (2019). Estimation of obesity levels based on eating habits and physical condition [Data set]. UCI Machine Learning Repository. https://archive.ics.uci.edu/dataset/544/estimation+of+obesity+levels+based+on+eating+habits+and+physical+condition
+
+> Stephen, A. (n.d.). Obesity Prediction Dataset [Data set]. Kaggle. https://www.kaggle.com/datasets/adeniranstephen/obesity-prediction-dataset
