@@ -8,3 +8,8 @@ output: html_document
 
 [Kaggle Link](https://www.kaggle.com/datasets/adeniranstephen/obesity-prediction-dataset)
 
+```{r}
+raw_data <- read.csv("ObesityDataSet_raw_and_data_sinthetic.csv")
+```
+
+make a change
