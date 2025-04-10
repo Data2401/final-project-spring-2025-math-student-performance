@@ -13,3 +13,12 @@ raw_data <- read.csv("ObesityDataSet_raw_and_data_sinthetic.csv")
 ```
 
 make a change
+
+
+# lauren 
+
+
+# shikyna
+
+
+# thomas
