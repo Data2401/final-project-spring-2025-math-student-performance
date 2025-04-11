@@ -3,7 +3,9 @@ title: "Investigating Contributing Factors of Obesity in Latin American Countrie
 author: "Lauren Duvall, Shikyna William, Thomas Linden"
 date: "`r Sys.Date()`"
 lang: en
-output: html_document
+output: 
+  html_document:
+    theme: paper
 ---
 
 ```{r setup, include=FALSE}
@@ -23,11 +25,15 @@ This dataset contains mostly synthetically generated data, with some gathered fr
 
 Although this dataset's primary purpose is to train ML models on obesity data for predictive analytics, the scope of this project is descriptive.
 
+___
+
 ## Load Packages
 ```{r}
 library(dplyr)
 library(plotly)
 ```
+
+___
 
 ## Data Cleaning
 ```{r}
@@ -36,7 +42,7 @@ raw <- read.csv("ObesityDataSet_raw_and_data_sinthetic.csv")
 formatted <- raw %>% transmute(
   gender = as.factor(Gender),
   age = Age,
-  height = Height,
+  height = Height * 3.28084, #convert to feet
   weight = Weight * 2.20462, #convert to lbs
   family_hist_overweight = as.factor(family_history_with_overweight),
   high_calorie_foods_frequently = as.factor(FAVC),
@@ -58,6 +64,8 @@ formatted <- raw %>% transmute(
 summary(formatted)
 ```
 
+___
+
 ## Exploratory Data Analysis
 ```{r}
 #Make correlation table
@@ -76,39 +84,65 @@ cor_df %>% ggplot(aes(Var1, Var2, fill = Correlation)) +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
 ```
 
-Some intuitive relationships:
-- Height and Weight, Age and Weight
+**Intuitive relationships:** 
 
-Some relationships to look into more:
-- Phys Activity, Water Intake, Weight
-- Phys Activity, Height, and Weight
+- Height vs. Weight
+- Age vs. Weight
 
-Some unintuitive relationships:
-- Vegetables and Weight
+**Some relationships to look into more:**
 
-Not in Cor:
-- gender, hist, calie,snack, smoker, monitors, alchohol, transport, obesity level
+- Phys Activity vs. Weight vs. Water Intake
+- Phys Activity vs. Weight vs. Height
 
-## Weight vs. Age by Obesity Levels
+**Unintuitive relationships:** 
+
+- Vegetables vs. Weight
+
+**Features not in the correlation heatmap:** Gender, family hist, caloric foods, snacks, smokers, monitors, alchohol, transport, obesity level
+
+___
+
+## The Affect of Obesity Levels on Age
 ```{r}
 formatted %>% 
-  ggplot(aes(x = age, y = weight, color = obesity_level)) + geom_point(alpha = .5) + geom_smooth() + 
+  ggplot(aes(x = age, y = weight, color = obesity_level)) + geom_point(alpha = .3) + 
+  geom_smooth(method = 'loess', formula = y ~ x) + 
   guides(color = guide_legend(reverse = TRUE)) + 
-  geom_vline(xintercept = 41, linetype = 'dashed') +
+  #geom_vline(xintercept = 41, linetype = 'dashed') +
   theme_bw() +
   labs(y = 'Weight', x = 'Age', color = 'Obesity Level', title = 'Age vs. Weight by Obesity Level')
+
+formatted %>% 
+  ggplot(aes(x = height, y = weight, color = obesity_level)) + geom_point(alpha = .3) + 
+  geom_smooth(method = 'loess', formula = y ~ x) + 
+  guides(color = guide_legend(reverse = TRUE)) + 
+  theme_bw() +
+  labs(y = 'Weight', x = 'Height', color = 'Obesity Level', title = 'Height vs. Weight by Obesity Level')
 ```
+
 Although the dataset does not track life span or mortality, there are less records at higher ages for unhealthy obesity levels. This indicates either lifestyle change, or shortened life expectancy of those categories. 
 
 Obesity Type III is an extreme case of weight gain and may have been oversampled when 77% of the data was synthesized. Alternatively, its possible these individuals had a medical wake-up call and the sharp decline for this group could indicate drastic lifestyle changes or survivorship.
 
+The second chart shows height vs. weight relationships very similar to one another, the only exception being Obesity Type III. This further supports the hypothesis that synthetic generation introduced outliers for this group.
 
+## Plot 2
+
+## Plot 3
+
+## Plot 4
+
+## Plot 5
+
+___
 
 ## Conclusions
 
 ### Limitations:
 
 ### Future Steps:
+
+___
 
 ## References:
 > Mendoza Palechor, F., & De la Hoz Manotas, A. (2019). Dataset for estimation of obesity levels based on eating habits and physical condition in individuals from Colombia, Peru and Mexico. Data in Brief, 25, 104344. https://doi.org/10.1016/j.dib.2019.104344
