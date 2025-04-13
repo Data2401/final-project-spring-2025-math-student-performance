@@ -1,0 +1,15 @@
+---
+title: "Exploring Potential Influencers of Math Student Performance"
+author: "Lauren Duvall, Shikyna William, Thomas Linden"
+date: "`r Sys.Date()`"
+lang: en
+output: 
+  html_document:
+    theme: paper
+---
+
+[Kaggle Link](https://www.kaggle.com/datasets/adilshamim8/math-students/data)
+
+```{r}
+raw_data <- read.csv("Math-Students.csv")
+```
