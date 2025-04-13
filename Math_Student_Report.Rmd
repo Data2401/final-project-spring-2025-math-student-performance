@@ -8,8 +8,133 @@ output:
     theme: paper
 ---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+suppressMessages(library(dplyr))    # Data manipulation
+suppressMessages(library(ggplot2))  # Plotting
+suppressMessages(library(plotly))  # Plotting
+suppressMessages(library(readr))    # Reading the dataset
+suppressMessages(library(knitr))    # For clean tables
+```
+
 [Kaggle Link](https://www.kaggle.com/datasets/adilshamim8/math-students/data)
 
+## Introduction
+
+This dataset
+
+___
+
+## Load Packages
 ```{r}
-raw_data <- read.csv("Math-Students.csv")
+library(dplyr)
+library(plotly)
 ```
+
+___
+
+## Data Cleaning
+```{r}
+raw <- read.csv("Math-Students.csv")
+#Rename cols, convert factors for summary, transmute to drop old columns
+formatted <- raw %>% transmute(
+  school = school,
+  sex = sex,
+  age = age,
+  address = address,
+  fam_size = famsize,
+  parental_stat = Pstatus,
+  mom_edu = Medu,
+  dad_edu = Fedu,
+  mom_job = Mjob,
+  dad_job = Fjob,
+  attend_reason = reason,
+  guardian = guardian,
+  travel_time = traveltime,
+  study_time = studytime,
+  failures = failures,
+  school_support = schoolsup,
+  family_support = famsup,
+  extra_paid_classes = paid,
+  activities = activities,
+  nursery_school = nursery,
+  pursue_higher_edu = higher,
+  internet_use = internet,
+  romantic = romantic,
+  family_relationship = famrel,
+  free_time = freetime,
+  go_out_w_friends = goout,
+  workday_alcohol = Dalc,
+  weekend_alcohol = Walc,
+  health = health,
+  absences = absences,
+  period1_grade = G1,
+  period2_grade = G2,
+  period3_grade = G3
+)
+summary(formatted)
+```
+
+___
+
+## Exploratory Data Analysis
+```{r}
+#Make correlation table
+cor_df <- formatted %>% select(where(is.numeric)) %>% cor(use = "complete.obs") %>% 
+  as.table() %>% as.data.frame()
+
+colnames(cor_df) <- c("Var1", "Var2", "Correlation")
+
+cor_df %>% ggplot(aes(Var1, Var2, fill = Correlation)) + 
+  geom_tile(color = 'white') + 
+  scale_fill_gradient2(low = '#067bc2', mid = 'white', high = '#fe4a49', 
+                       midpoint = 0, limit = c(-1,1), name = 'Correlation') +
+  labs(title = "Correlation Heatmap", x = '', y = '') + 
+  theme_minimal() + 
+  coord_fixed() + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
+```
+
+**Intuitive relationships:** 
+
+
+
+**Some relationships to look into more:**
+
+
+
+**Unintuitive relationships:** 
+
+
+
+**Features not in the correlation heatmap:** 
+
+___
+
+## Shikyna - School & Demographics
+
+## Shikyna - Family Background
+
+## Academic Support & Study Habits
+
+## Activities and Social Life
+
+## Lauren - Health & Lifestyle
+
+## Lauren - Academic Performance
+
+___
+
+## Conclusions
+
+### Limitations:
+
+### Future Steps:
+
+___
+
+## References:
+
+> Shamim, A. (n.d.). Math-Students Performance Data [Data set]. Kaggle. https://www.kaggle.com/datasets/adilshamim8/math-students/data
+
+> P. Cortez and A. Silva. Using Data Mining to Predict Secondary School Student Performance. In A. Brito and J. Teixeira (Eds.), Proceedings of 5th FUture BUsiness TEChnology Conference (FUBUTEC 2008), pp. 5-12, Porto, Portugal, April 2008, EUROSIS, ISBN 978-9077381-39-7.
