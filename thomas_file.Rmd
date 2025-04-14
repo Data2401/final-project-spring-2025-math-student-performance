@@ -19,11 +19,14 @@ suppressMessages(library(knitr))    # For clean tables
 
 [Kaggle Link](https://www.kaggle.com/datasets/adilshamim8/math-students/data)
 
-## Introduction
+## 📘 Introduction
 
-This project dives deep into a dataset from the UCI Machine Learning repository which contains data on student performance in a secondary school math program. The dataset contains features covering academic, personal, and social factors of a student's life.
+This project dives deep into a dataset from the [UCI Machine Learning Repository](https://archive.ics.uci.edu/dataset/320/student+performance), which contains data on student performance in a secondary school math program. The dataset features academic, personal, and social aspects of a student's life.
 
-Our goal is to determine what factor(s) have the most significant impact on student performance in the math program, as well as determine what factors have little to no affect on performance despite what intuition may lead the average person to believe. These factors have been divided into categories of:
+🎯 **Objective**:\
+Our goal is to determine factors that have the most significant impact on student performance in the math program. In addition, we hope to discover factors which may seem influential based on intuition but prove otherwise after analyzing the data.
+
+📂 **Factor Categories Analyzed**:
 
 - School & Demographics
 - Family Background
