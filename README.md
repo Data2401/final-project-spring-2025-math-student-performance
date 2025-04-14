@@ -7,7 +7,7 @@ This project dives deep into a dataset from the [UCI Machine Learning Repository
 🎯 **Objective**:\
 Our goal is to determine factors that have the most significant impact on student performance in the math program. In addition, we hope to discover factors which may seem influential based on intuition but prove otherwise after analyzing the data.
 
-📂 **Factor Categories Analyzed**:
+📂 **Categories Analyzed**:
 
 -   **School & Demographics**
 -   **Family Background**

@@ -1,59 +1,99 @@
 ---
-title: "Exploring Potential Influencers of Math Student Performance"
+title: "DATA 2401 Group Project"
 author: "Lauren Duvall, Shikyna William, Thomas Linden"
 date: "`r Sys.Date()`"
 lang: en
 output: 
   html_document:
-    theme: paper
+    css: style.css
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 suppressMessages(library(dplyr))    # Data manipulation
 suppressMessages(library(ggplot2))  # Plotting
-suppressMessages(library(plotly))  # Plotting
+suppressMessages(library(plotly))   # Plotting
 suppressMessages(library(readr))    # Reading the dataset
-suppressMessages(library(knitr))    # For clean tables
+suppressMessages(library(knitr))
 ```
 
-[Kaggle Link](https://www.kaggle.com/datasets/adilshamim8/math-students/data)
+<center>
+# **Exploring Potential Influencers of Math Student Performance**
+</center>
 
-## 📘 Introduction
+```{r online-image, echo=FALSE, out.width='80%', fig.align='center'}
+knitr::include_graphics("sad-girl.webp")
+```
 
-This project dives deep into a dataset from the [UCI Machine Learning Repository](https://archive.ics.uci.edu/dataset/320/student+performance), which contains data on student performance in a secondary school math program. The dataset features academic, personal, and social aspects of a student's life.
+## Introduction
 
-🎯 **Objective**:\
+This project dives deep into a dataset from the [UCI Machine Learning Repository](https://www.kaggle.com/datasets/adilshamim8/math-students/data), which contains data on student performance in a secondary school math program. The dataset features academic, personal, and social aspects of a student's life.
+
+### Objective
+
 Our goal is to determine factors that have the most significant impact on student performance in the math program. In addition, we hope to discover factors which may seem influential based on intuition but prove otherwise after analyzing the data.
 
-📂 **Factor Categories Analyzed**:
+### Categories Analyzed
 
-- School & Demographics
-- Family Background
-- Academic Support & Study Habits
-- Activities & Social Life
-- Health & Lifestyle
-- Overall Academic Performance
+#### 📍 Logistics & School Choice
 
-___
+- traveltime — Home to school travel time (1 to 4 scale)
+- reason — Reason for choosing the school (home, reputation, course, other)
+
+#### 🏫 School & Demographics
+
+- Do students from different schools (GP vs MS) show significant differences in final performance (G3)?
+- Is there an interaction between romantic relationships and gender on academic performance?
+
+#### 👪 Family Background
+
+- Do students with higher parental education (Medu/Fedu) perform better in math?
+- Does having family support at home (famsup) help students perform better in school?
+
+#### 🎓 Academic Support & Study Habits
+
+- Which factors (e.g., studytime, failures, goout, health) are the most predictive of final grades (G3)?
+- Does weekly study time affect performance consistently across all three grading periods (G1, G2, G3)?
+
+#### 🏃 Activities & Social Life
+
+- Do students who have a romantic relationship perform differently from those who don’t?
+- Is there a relationship between students’ participation in extracurricular activities and their number of absences?
+
+#### 🍷 Health & Lifestyle
+
+- What is the relationship between alcohol consumption (weekdays Dalc vs weekends Walc) and final grades?
+- Do students with internet access and more activities have more school absences than others?
+
+#### 🧠 Academic Performance
+
+- Do students who fail more subjects in the past continue to perform poorly in current grading periods?
+- How consistent are students’ performances across G1, G2, and G3? Is there improvement or decline over time?
+
+------------------------------------------------------------------------
 
 ## Load Packages
-```{r}
+
+```{r echo=FALSE}
 library(dplyr)
 library(plotly)
+library(DT)
 ```
 
 We utilized the following libraries:
 
-- **dplyr** for data manipulation.
-- **ggplot2** for creating plots.
-- **plotly** to add interactivity to the plots.
-___
+-   **dplyr** for data manipulation.
+-   **ggplot2** for creating plots.
+-   **plotly** to add interactivity to the plots.
+-   **DT** to display the data prettier. 🌈
+
+------------------------------------------------------------------------
 
 ## Data Cleaning
-```{r}
+
+```{r echo=FALSE}
 raw <- read.csv("Math-Students.csv")
-#Rename cols, convert factors for summary, transmute to drop old columns
+#Rename cols, convert to factors, add any necessary levels, transmute to drop old columns
 formatted <- raw %>% transmute(
   school = as.factor(school),
   sex = as.factor(sex),
@@ -89,18 +129,27 @@ formatted <- raw %>% transmute(
   period2_grade = G2,
   period3_grade = G3
 )
-summary(formatted)
+```
+
+```{r}
+datatable(formatted, 
+          options = list(pageLength = 10,
+                         scrollX = TRUE, 
+                         autoWidth = TRUE, 
+                         columnDefs = list(list(className = 'dt-center', targets = "_all"))), 
+          rownames = FALSE)
 sum(is.na(formatted))
 ```
 
-Character columns have been converted to factors, factors with levels have been ordered.
+Character columns have been converted to factors, and those with levels have been ordered.
 
 There are no missing values in the dataset.
 
-___
+------------------------------------------------------------------------
 
 ## Exploratory Data Analysis
-```{r}
+
+```{r fig.align='center'}
 #Make correlation table
 cor_df <- formatted %>% select(where(is.numeric)) %>% cor(use = "complete.obs") %>% 
   as.table() %>% as.data.frame()
@@ -114,38 +163,39 @@ cor_df %>% ggplot(aes(Var1, Var2, fill = Correlation)) +
   labs(title = "Correlation Heatmap", x = '', y = '') + 
   theme_minimal() + 
   coord_fixed() + 
+  theme_bw() +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
 ```
 
-**Intuitive relationships:** 
+**Intuitive relationships:**
 
-- Grades from all three periods are strongly positively correlated.
-- Grades are negatively correlated with the number of failures.
+-   Grades from all three periods are strongly positively correlated.
+-   Grades are negatively correlated with the number of failures.
 
 **Some relationships to look into more:**
 
-- Travel time is inversely proportional to study time.
-- Number of failures is positively correlated to travel time; negatively correlated with study time.
+-   Travel time is inversely proportional to study time.
+-   Number of failures is positively correlated to travel time; negatively correlated with study time.
 
-**Features not in the correlation heatmap: (Potential 3rd Degrees of Comparison)** 
+**Features not in the correlation heatmap: (Potential 3rd Degrees of Comparison)**
 
-- All factor features, including but not limited to: parental, financial, and social details.
+-   All factor features, including but not limited to: parental, financial, and social details.
 
-___
+------------------------------------------------------------------------
 
-## Shikyna - School & Demographics
+### Shikyna - School & Demographics
 
-## Shikyna - Family Background
+### Shikyna - Family Background
 
-## Thomas - Academic Support & Study Habits
+### Thomas - Academic Support & Study Habits
 
-## Thomas - Activities and Social Life
+### Thomas - Activities and Social Life
 
-## Lauren - Health & Lifestyle
+### Lauren - Health & Lifestyle
 
-## Lauren - Academic Performance
+### Lauren - Academic Performance
 
-___
+------------------------------------------------------------------------
 
 ## Conclusions
 
@@ -153,10 +203,12 @@ ___
 
 ### Future Steps:
 
-___
+------------------------------------------------------------------------
 
 ## References:
 
 > Shamim, A. (n.d.). Math-Students Performance Data [Data set]. Kaggle. https://www.kaggle.com/datasets/adilshamim8/math-students/data
+
+> Dua, D., & Graff, C. (2017). Student Performance Data Set. UCI Machine Learning Repository. https://archive.ics.uci.edu/dataset/320/student+performance
 
 > P. Cortez and A. Silva. Using Data Mining to Predict Secondary School Student Performance. In A. Brito and J. Teixeira (Eds.), Proceedings of 5th FUture BUsiness TEChnology Conference (FUBUTEC 2008), pp. 5-12, Porto, Portugal, April 2008, EUROSIS, ISBN 978-9077381-39-7.
