@@ -27,7 +27,11 @@ knitr::include_graphics("sad-girl.webp")
 
 ## Introduction
 
-This project dives deep into a dataset from the [UCI Machine Learning Repository](https://www.kaggle.com/datasets/adilshamim8/math-students/data), which contains data on student performance in a secondary school math program. The dataset features academic, personal, and social aspects of a student's life.
+This project dives deep into a dataset named from the [UCI Machine Learning Repository](https://www.kaggle.com/datasets/adilshamim8/math-students/data), which contains data on student performance in math programs at two Portuguese secondary schools. The data was collected using school reports and student questionaires and features academic, personal, and social aspects of a student's life.
+
+### Why Is This Interesting?
+
+This dataset is interesting because it shows how multiple aspects of a student's life correlate to their scores in school. In addition, the features (G1, G2, G3) represent period 1-3 of a school year (similar to a midterm in the United States being period 1/2 and finals being 2/2.) This is interesting because you can see if a student's score decreases over time (falling behind gradually due to external factors) or maintains a consistent grade throughout the year- these features also allow a ML model to predict G3 based off G1, G2, and the other external factors.
 
 ### Objective
 
@@ -76,16 +80,22 @@ Our goal is to determine factors that have the most significant impact on studen
 
 ```{r echo=FALSE}
 library(dplyr)
+library(tidyr)
 library(plotly)
 library(DT)
+library(GGally)
+library(ggridges)
+library(hrbrthemes)
 ```
 
 We utilized the following libraries:
 
--   **dplyr** for data manipulation.
--   **ggplot2** for creating plots.
--   **plotly** to add interactivity to the plots.
--   **DT** to display the data prettier. 🌈
+- **dplyr** for data manipulation.
+- **tidyr** for table pivots.
+- **ggplot2** for creating plots.
+- **plotly** to add interactivity to the plots.
+- **DT** to display the data prettier. 🌈
+- **GGally** for ggparacord()'s parallel coordinates chart.
 
 ------------------------------------------------------------------------
 
@@ -163,7 +173,7 @@ cor_df %>% ggplot(aes(Var1, Var2, fill = Correlation)) +
   labs(title = "Correlation Heatmap", x = '', y = '') + 
   theme_minimal() + 
   coord_fixed() + 
-  theme_bw() +
+  theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
 ```
 
@@ -187,9 +197,75 @@ cor_df %>% ggplot(aes(Var1, Var2, fill = Correlation)) +
 
 ### Shikyna - Family Background
 
-### Thomas - Academic Support & Study Habits
+### Academic Support & Study Habits
 
-### Thomas - Activities and Social Life
+##### Which factors (e.g., studytime, failures, goout, health) are the most predictive of final grades (G3)?
+```{r}
+formatted %>% #Family education not a predictor
+  mutate(
+    mom_edu_num = as.numeric(as.character(mom_edu)),
+    dad_edu_num = as.numeric(as.character(dad_edu)),
+    both_edu = mom_edu_num + dad_edu_num
+  ) %>% ggplot( aes(y=factor(both_edu), x=period3_grade)) +
+    geom_density_ridges(alpha=0.6, bandwidth=4) +
+    theme_linedraw() +
+    theme(
+      legend.position="none",
+      panel.spacing = unit(0.1, "lines"),
+      strip.text.x = element_text(size = 8)
+    ) +
+    xlab("Final Grade") +
+    ylab("Combined Parent Education)")
+
+formatted %>% #Family no relation
+  ggplot(aes(x = factor(family_support), y = period3_grade, fill = family_relationship)) + geom_boxplot() + theme_linedraw() 
+
+formatted %>% #Internet helps studying
+  ggplot(aes(x = factor(study_time), y = period3_grade, fill = internet_use)) + geom_boxplot() + theme_linedraw() #Internet good 4 studying
+```
+
+##### Does weekly study time affect performance consistently across all three grading periods (G1, G2, G3)?
+```{r}
+long_grade_data <- formatted %>% #More studying is better regardless of period
+  pivot_longer(cols = starts_with("period"),names_to = "period",values_to = "grade") %>% 
+  mutate(period = recode(period, 
+                         period1_grade = "Period 1", 
+                         period2_grade = "Period 2", 
+                         period3_grade = "Period 3"))
+
+long_grade_data %>% ggplot(aes(x = factor(study_time), y = grade)) + geom_boxplot(fill = "skyblue") +
+  facet_wrap(~ period) +
+  labs(x = "Study Time:   1 = <2hrs,   2 = 2-5hrs,   3 = 5-10hrs,   4 = >10hrs", y = "Grade", title = "Grades vs. Weekly Study Time Per Period") + theme_linedraw()
+```
+
+```{r}
+formatted %>% #More study time is better for overall grade trend, sharp drop for (4), maybe overconfidence or too much studying lowers retention of key information.
+  select(period1_grade, period2_grade, period3_grade, study_time) %>%
+  pivot_longer(cols = starts_with("period"), names_to = "period", values_to = "grade") %>%
+  group_by(study_time, period) %>%
+  summarise(mean_grade = mean(grade)) %>%
+  ggplot(aes(x = period, y = mean_grade, group = study_time, color = factor(study_time))) +
+  geom_line(size = 1.2) +
+  geom_point() +
+  labs(x = "Term", y = "Average Grade", color = "Study Time (Hours)", title = "Grade Average Trend by Study time") +
+  theme_minimal()
+```
+
+
+### Activities and Social Life
+
+##### Do students who have a romantic relationship perform differently from those who don’t?
+```{r}
+formatted %>% 
+  ggplot(aes(x = factor(romantic), y = period3_grade)) + geom_boxplot() #w/ go out w/ friends
+```
+
+##### Is there a relationship between students’ participation in extracurricular activities and their number of absences?
+```{r}
+formatted %>% #
+  ggplot(aes())
+```
+
 
 ### Lauren - Health & Lifestyle
 

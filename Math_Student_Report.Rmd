@@ -27,7 +27,11 @@ knitr::include_graphics("sad-girl.webp")
 
 ## Introduction
 
-This project dives deep into a dataset from the [UCI Machine Learning Repository](https://www.kaggle.com/datasets/adilshamim8/math-students/data), which contains data on student performance in a secondary school math program. The dataset features academic, personal, and social aspects of a student's life.
+This project dives deep into a dataset named from the [UCI Machine Learning Repository](https://www.kaggle.com/datasets/adilshamim8/math-students/data), which contains data on student performance in math programs at two Portuguese secondary schools. The data was collected using school reports and student questionaires and features academic, personal, and social aspects of a student's life.
+
+### Why Is This Interesting?
+
+This dataset is interesting because it shows how multiple aspects of a student's life correlate to their scores in school. In addition, the features (G1, G2, G3) represent period 1-3 of a school year (similar to a midterm in the United States being period 1/2 and finals being 2/2.) This is interesting because you can see if a student's score decreases over time (falling behind gradually due to external factors) or maintains a consistent grade throughout the year- these features also allow a ML model to predict G3 based off G1, G2, and the other external factors.
 
 ### Objective
 
