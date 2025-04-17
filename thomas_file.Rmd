@@ -9,19 +9,18 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
 suppressMessages(library(dplyr))
 suppressMessages(library(ggplot2))
 suppressMessages(library(plotly))
 suppressMessages(library(readr))
 suppressMessages(library(knitr))
 suppressMessages(library(GGally))
+suppressMessages(library(kableExtra))
 ```
 
 <center>
-
 # **Exploring Potential Influencers of Math Student Performance**
-
 </center>
 
 ```{r online-image, echo=FALSE, out.width='80%', fig.align='center'}
@@ -29,80 +28,77 @@ knitr::include_graphics("sad-girl.webp")
 ```
 
 ## Introduction
-
 This project dives deep into a dataset named from the [UCI Machine Learning Repository](https://www.kaggle.com/datasets/adilshamim8/math-students/data), which contains data on student performance in math programs at two Portuguese secondary schools. The data was collected using school reports and student questionaires and features academic, personal, and social aspects of a student's life.
 
 ### Why Is This Interesting?
-
 This dataset is interesting because it shows how multiple aspects of a student's life correlate to their scores in school. In addition, the features (G1, G2, G3) represent period 1-3 of a school year (similar to a midterm in the United States being period 1/2 and finals being 2/2.) This is interesting because you can see if a student's score decreases over time (falling behind gradually due to external factors) or maintains a consistent grade throughout the year- these features also allow a ML model to predict G3 based off G1, G2, and the other external factors.
 
 ### Objective
-
 Our goal is to determine factors that have the most significant impact on student performance in the math program. In addition, we hope to discover factors which may seem influential based on intuition but prove otherwise after analyzing the data.
 
 ### Categories Analyzed
 
-#### 📍 Logistics & School Choice
+#### Logistics & School Choice
 
 -   traveltime — Home to school travel time (1 to 4 scale)
 -   reason — Reason for choosing the school (home, reputation, course, other)
 
-#### 🏫 School & Demographics
+#### School & Demographics
 
 -   Do students from different schools (GP vs MS) show significant differences in final performance (G3)?
 -   Is there an interaction between romantic relationships and gender on academic performance?
 
-#### 👪 Family Background
+#### Family Background
 
 -   Do students with higher parental education (Medu/Fedu) perform better in math?
 -   Does having family support at home (famsup) help students perform better in school?
 
-#### 🎓 Academic Support & Study Habits
+#### Academic Support & Study Habits
 
 -   Which factors (e.g., studytime, failures, goout, health) are the most predictive of final grades (G3)?
 -   Does weekly study time affect performance consistently across all three grading periods (G1, G2, G3)?
 
-#### 🏃 Activities & Social Life
+#### Activities & Social Life
 
 -   Do students who have a romantic relationship perform differently from those who don’t?
 -   Is there a relationship between students’ participation in extracurricular activities and their number of absences?
 
-#### 🍷 Health & Lifestyle
+#### Health & Lifestyle
 
 -   What is the relationship between alcohol consumption (weekdays Dalc vs weekends Walc) and final grades?
 -   Do students with internet access and more activities have more school absences than others?
 
-#### 🧠 Academic Performance
+#### Academic Performance
 
 -   Do students who fail more subjects in the past continue to perform poorly in current grading periods?
 -   How consistent are students’ performances across G1, G2, and G3? Is there improvement or decline over time?
 
 ## Load Packages
-
-```{r echo=FALSE, results = 'hide'}
+```{r libraries, echo=FALSE, results = 'hide'}
 library(dplyr)
+library(tibble)
 library(tidyr)
 library(plotly)
 library(DT)
 library(GGally)
 library(ggridges)
 library(hrbrthemes)
+library(kableExtra)
 ```
 
 We utilized the following libraries:
 
 -   **dplyr** for basic data manipulation.
--   **DT** to display the data table prettier. 🌈
+-   **DT / kableExtra** to display the data tables.
 -   **tidyr** for table pivots.
 -   **ggplot2** for creating plots.
 -   **plotly** to add interactivity to the plots.
 -   **GGally** for ggparacord()'s parallel coordinates chart.
 
 ## Data Cleaning
-
-```{r echo=FALSE, results='hide'}
+```{r formatting, echo=FALSE, results='hide'}
 raw <- read.csv("Math-Students.csv")
-#Rename cols, convert to factors, add any necessary levels, transmute to drop old columns
+# Rename cols, convert to factors, add any necessary levels, transmute to drop old columns
 formatted <- raw %>% transmute(
   school = as.factor(school),
   sex = as.factor(sex),
@@ -143,38 +139,44 @@ sum(is.na(formatted))
 
 Using transmute(), we changed character columns to factors, and those with levels have been ordered. We used transmute instead of mutate so original columns would drop and there would be no redundant data. There are no missing values in the dataset which was confirmed with sum(is.na()).
 
-```{r}
-datatable(formatted, 
-          rownames = FALSE,
-          options = list(pageLength = 10,
-                         scrollX = TRUE, 
-                         autoWidth = TRUE, 
-                         columnDefs = list(list(className = 'dt-center', targets = "_all"))))
-
+```{r datatable, echo=FALSE}
+datatable(formatted,
+  rownames = FALSE,
+  options = list(
+    pageLength = 10,
+    scrollX = TRUE,
+    autoWidth = TRUE,
+    columnDefs = list(list(className = "dt-center", targets = "_all"))
+  )
+)
 ```
 
 The "DT" package is an R interface to the Javascript library "DataTables". With help from the documentation, we enabled horizontal scrolling, auto column widths, and centered values within each column via a list of lists.
 
-- **columnDefs:** passed to JS as an array of objects (list of lists). Why? Each inner list can apply a different css class or apply to a different set of columns. Options, options, options!
-- **dt-center:** applies the center data css class
-- **targets:** applies settings to all columns
+-   **columnDefs:** passed to JS as an array of objects (list of lists). Why? Each inner list can apply a different css class or apply to a different set of columns. Options, options, options!
+-   **dt-center:** applies the center data css class
+-   **targets:** applies settings to all columns
 
 ## Exploratory Data Analysis
-
-```{r fig.align='center'}
-#Make correlation table
-cor_df <- formatted %>% select(where(is.numeric)) %>% cor(use = "complete.obs") %>% 
-  as.table() %>% as.data.frame()
+```{r correlation, echo=FALSE, fig.align='center'}
+# Make correlation table
+cor_df <- formatted %>%
+  select(where(is.numeric)) %>%
+  cor(use = "complete.obs") %>%
+  as.table() %>%
+  as.data.frame()
 
 colnames(cor_df) <- c("Var1", "Var2", "Correlation")
 
-cor_df %>% ggplot(aes(Var1, Var2, fill = Correlation)) + 
-  geom_tile(color = 'white') + 
-  scale_fill_gradient2(low = '#067bc2', mid = 'white', high = '#fe4a49', 
-                       midpoint = 0, limit = c(-1,1), name = 'Correlation') +
-  labs(title = "Correlation Heatmap", x = '', y = '') + 
-  theme_minimal() + 
-  coord_fixed() + 
+cor_df %>% ggplot(aes(Var1, Var2, fill = Correlation)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient2(
+    low = "#067bc2", mid = "white", high = "#fe4a49",
+    midpoint = 0, limit = c(-1, 1), name = "Correlation"
+  ) +
+  labs(title = "Correlation Heatmap", x = "", y = "") +
+  theme_minimal() +
+  coord_fixed() +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
 ```
@@ -196,15 +198,79 @@ A quick way for us to explore the data was via correlation heatmap. Strong posit
 -   All factor features, including but not limited to: parental, financial, and social details.
 
 ### Shikyna - School & Demographics
-
 ### Shikyna - Family Background
 
 ### Academic Support & Study Habits
+#### Which factors (e.g., studytime, failures, goout, health) are the most predictive of final grades (G3)?
+```{r significance_setup, echo=FALSE}
+# Irrelevant Factors
+overall_avg_final <- mean(formatted$period3_grade)
 
-##### Which factors (e.g., studytime, failures, goout, health) are the most predictive of final grades (G3)?
+# Get factor columns
+factor_cols <- names(formatted)[sapply(formatted, is.factor)]
 
-```{r echo = FALSE, results = 'hide'}
-education_vs_means <- formatted %>% #Combines education levels and average final grades for geom_segment
+# Create summary table
+factor_effects <- lapply(factor_cols, function(var) { # Loop through each factor
+  formatted %>%
+    group_by(.data[[var]]) %>% # Group by factor
+    summarise( # Get average final grade for the factor
+      avg_grade = mean(period3_grade, na.rm = TRUE),
+      .groups = "drop"
+    ) %>%
+    mutate( # Make new column w/ group level as character
+      variable = var,
+      level = as.character(.data[[var]]),
+      diff_from_overall = avg_grade - overall_avg_final # Diff from overall avg
+    ) %>%
+    select(variable, level, avg_grade, diff_from_overall)
+}) %>% bind_rows() # After looping, combine all columns into a df
+
+minimal_table <- factor_effects %>%
+  filter(abs(diff_from_overall) < 1) %>%
+  select(Factor = variable, Level = level, `Factor Avg` = avg_grade, Difference = diff_from_overall) %>%
+  kable(digits = 2, caption = "**Minimal** Impact on Final Grade: ∆ &lt; 1") %>%
+  kable_styling(full_width = FALSE) %>%
+  scroll_box(width = "100%", height = "300px")
+
+significant_table <- factor_effects %>%
+  filter(abs(diff_from_overall) >= 1.5) %>%
+  select(Factor = variable, Level = level, `Factor Avg` = avg_grade, Difference = diff_from_overall) %>%
+  kable(digits = 2, caption = "**Significant** Impact on Final Grade: ∆ ≥ 1.5") %>%
+  kable_styling(full_width = FALSE) %>%
+  scroll_box(width = "100%", height = "300px")
+```
+</br>
+```{r significance_tables, results='asis', echo=FALSE}
+library(kableExtra)
+library(htmltools)
+
+minimal_table <- factor_effects %>%
+  filter(abs(diff_from_overall) < 1) %>%
+  select(Factor = variable, Level = level, `Factor Avg` = avg_grade, Difference = diff_from_overall) %>%
+  kable(digits = 2, caption = "Minimal Impact: ∆ &lt; 1") %>%
+  kable_styling(full_width = FALSE) %>%
+  scroll_box(width = "100%", height = "300px")
+
+significant_table <- factor_effects %>%
+  filter(abs(diff_from_overall) >= 1.5) %>%
+  select(Factor = variable, Level = level, `Factor Avg` = avg_grade, Difference = diff_from_overall) %>%
+  kable(digits = 2, caption = "Significant Impact: ∆ ≥ 1.5") %>%
+  kable_styling(full_width = FALSE) %>%
+  scroll_box(width = "100%", height = "300px")
+
+browsable(
+  tagList(
+    div(
+      style = "display: flex; gap: 2%;",
+      div(style = "flex: 1;", HTML(minimal_table)),
+      div(style = "flex: 1;", HTML(significant_table))
+    )
+  )
+)
+```
+
+```{r avg_by_p_edu, echo = FALSE}
+education_vs_means <- formatted %>% # Combines education levels and average final grades for geom_segment
   mutate(
     mom_edu_num = as.numeric(as.character(mom_edu)),
     dad_edu_num = as.numeric(as.character(dad_edu)),
@@ -213,8 +279,8 @@ education_vs_means <- formatted %>% #Combines education levels and average final
   group_by(both_edu) %>%
   summarise(mean_grade = mean(period3_grade, na.rm = TRUE))
 ```
-
-```{r fig.align='center'}
+</br>
+```{r parent_ridge, echo=FALSE, fig.align='center'}
 formatted %>%
   mutate(
     mom_edu_num = as.numeric(as.character(mom_edu)),
@@ -238,40 +304,47 @@ formatted %>%
     x = "Final Grade", y = "Parents' Edu. Level",
     title = "Parents' Combined Education Level vs. Student Final Grade"
   ) +
-  coord_cartesian(ylim = c(2.57, 9.25), xlim = c(0,20))
+  coord_cartesian(ylim = c(2.57, 9.25), xlim = c(0, 20))
 ```
 
-```{r fig.align='center'}
-formatted %>% #Family no relation
-  ggplot(aes(x = factor(family_support), y = period3_grade, fill = family_relationship)) + geom_boxplot() + theme_linedraw()
+```{r parent_box, echo=FALSE, fig.align='center'}
+formatted %>%
+  ggplot(aes(x = factor(family_relationship), y = period3_grade, fill = factor(family_support))) +
+  geom_boxplot(position = position_dodge(width = 0.75)) +
+  theme_linedraw() +
+  labs(x = "Family Relationship (1-5)", fill = "Family Support", y = "Final Grade", title = "Family Educational Support and Relationship") # Optional: clearer labels
 ```
 
-```{r fig.align='center'}
-formatted %>% #Internet helps studying
-  ggplot(aes(x = factor(study_time), y = period3_grade, fill = internet_use)) + geom_boxplot() + theme_linedraw() #Internet good 4 studying
+```{r study_internet_box, echo=FALSE, fig.align='center'}
+formatted %>% # Internet helps studying
+  ggplot(aes(x = factor(study_time), y = period3_grade, fill = internet_use)) +
+  geom_boxplot() +
+  theme_linedraw() # Internet good 4 studying
 ```
 
 #### Does weekly study time affect performance consistently across all three grading periods (G1, G2, G3)?
+```{r study_per_period_box, echo=FALSE, fig.align='center'}
+long_grade_data <- formatted %>% # More studying is better regardless of period
+  pivot_longer(cols = starts_with("period"), names_to = "period", values_to = "grade") %>%
+  mutate(period = recode(period,
+    period1_grade = "Period 1",
+    period2_grade = "Period 2",
+    period3_grade = "Period 3"
+  ))
 
-```{r fig.align='center'}
-long_grade_data <- formatted %>% #More studying is better regardless of period
-  pivot_longer(cols = starts_with("period"),names_to = "period",values_to = "grade") %>% 
-  mutate(period = recode(period, 
-                         period1_grade = "Period 1", 
-                         period2_grade = "Period 2", 
-                         period3_grade = "Period 3"))
-
-long_grade_data %>% ggplot(aes(x = factor(study_time), y = grade)) + geom_boxplot(fill = "skyblue") +
-  facet_wrap(~ period) +
-  labs(x = "Study Time:   1 = <2hrs,   2 = 2-5hrs,   3 = 5-10hrs,   4 = >10hrs", y = "Grade", title = "Grades vs. Weekly Study Time Per Period") + theme_linedraw()
+long_grade_data %>% ggplot(aes(x = factor(study_time), y = grade)) +
+  geom_boxplot(fill = "lightblue") +
+  facet_wrap(~period) +
+  labs(x = "Study Time:   1 = <2hrs,   2 = 2-5hrs,   3 = 5-10hrs,   4 = >10hrs", y = "Grade", title = "Grades vs. Weekly Study Time Per Period") +
+  theme_linedraw()
 ```
 
-```{r fig.align='center'}
-formatted %>% #More study time is better for overall grade trend, sharp drop for (4), maybe overconfidence or too much studying lowers retention of key information.
+```{r study_across_periods_para, echo=FALSE, fig.align='center'}
+formatted %>% # More study time is better for overall grade trend, sharp drop for (4), maybe overconfidence or too much studying lowers retention of key information.
   select(period1_grade, period2_grade, period3_grade, study_time) %>%
   pivot_longer(cols = starts_with("period"), names_to = "period", values_to = "grade") %>%
   group_by(study_time, period) %>%
-  summarise(mean_grade = mean(grade)) %>%
+  summarise(mean_grade = mean(grade), .groups = "drop") %>%
   ggplot(aes(x = period, y = mean_grade, group = study_time, color = factor(study_time))) +
   geom_line(size = 1.2) +
   geom_point() +
@@ -280,35 +353,28 @@ formatted %>% #More study time is better for overall grade trend, sharp drop for
 ```
 
 ### Activities and Social Life
-
 #### Do students who have a romantic relationship perform differently from those who don’t?
-
-```{r fig.align='center'}
-formatted %>% 
-  ggplot(aes(x = factor(romantic), y = period3_grade)) + geom_boxplot() #w/ go out w/ friends
+```{r romance_plot, echo=FALSE, fig.align='center'}
+formatted %>%
+  ggplot(aes(x = factor(romantic), y = period3_grade)) +
+  geom_boxplot() # w/ go out w/ friends
 ```
-
 #### Is there a relationship between students’ participation in extracurricular activities and their number of absences?
-
-```{r fig.align='center'}
-formatted %>% #
-  ggplot(aes())
+```{r activities_absences, echo=FALSE, fig.align='center'}
 ```
 
 ### Lauren - Health & Lifestyle
-
 ### Lauren - Academic Performance
 
-## Conclusions
 
-### Limitations:
 
-### Future Steps:
+## **Conclusions**
+### Limitations
+### Future Steps
 
-- Ask to undo factorization of family edu so simplify plot code
-- Delete (fix) legend in family ridge plot
 
-## References:
+
+## **References**
 
 > Shamim, A. (n.d.). Math-Students Performance Data [Data set]. Kaggle. <https://www.kaggle.com/datasets/adilshamim8/math-students/data>
 
