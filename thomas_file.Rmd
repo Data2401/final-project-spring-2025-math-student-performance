@@ -4,8 +4,10 @@ author: "Lauren Duvall, Shikyna William, Thomas Linden"
 date: "`r Sys.Date()`"
 lang: en
 output: 
-  html_document:
+  html_document: 
     css: style.css
+editor_options: 
+  chunk_output_type: inline
 ---
 
 ```{r setup, include=FALSE}
@@ -33,7 +35,7 @@ This project dives deep into a dataset named from the [UCI Machine Learning Repo
 ### Why Is This Interesting?
 This dataset is interesting because it shows how multiple aspects of a student's life correlate to their scores in school. In addition, the features (G1, G2, G3) represent period 1-3 of a school year (similar to a midterm in the United States being period 1/2 and finals being 2/2.) This is interesting because you can see if a student's score decreases over time (falling behind gradually due to external factors) or maintains a consistent grade throughout the year- these features also allow a ML model to predict G3 based off G1, G2, and the other external factors.
 
-### Objective
+## Objective
 Our goal is to determine factors that have the most significant impact on student performance in the math program. In addition, we hope to discover factors which may seem influential based on intuition but prove otherwise after analyzing the data.
 
 ### Categories Analyzed
@@ -82,8 +84,8 @@ library(plotly)
 library(DT)
 library(GGally)
 library(ggridges)
-library(hrbrthemes)
 library(kableExtra)
+library(patchwork)
 ```
 
 We utilized the following libraries:
@@ -94,6 +96,8 @@ We utilized the following libraries:
 -   **ggplot2** for creating plots.
 -   **plotly** to add interactivity to the plots.
 -   **GGally** for ggparacord()'s parallel coordinates chart.
+-   **ggridges** for ridge plot.
+-   **patchwork** for side by side plots.
 
 ## Data Cleaning
 ```{r formatting, echo=FALSE, results='hide'}
@@ -197,11 +201,11 @@ A quick way for us to explore the data was via correlation heatmap. Strong posit
 
 -   All factor features, including but not limited to: parental, financial, and social details.
 
-### Shikyna - School & Demographics
-### Shikyna - Family Background
+## Shikyna - School & Demographics
+## Shikyna - Family Background
 
-### Academic Support & Study Habits
-#### Which factors (e.g., studytime, failures, goout, health) are the most predictive of final grades (G3)?
+## Academic Support & Study Habits
+### Which factors are most predictive of final grades?
 ```{r significance_setup, echo=FALSE}
 # Irrelevant Factors
 overall_avg_final <- mean(formatted$period3_grade)
@@ -239,7 +243,6 @@ significant_table <- factor_effects %>%
   kable_styling(full_width = FALSE) %>%
   scroll_box(width = "100%", height = "300px")
 ```
-</br>
 ```{r significance_tables, results='asis', echo=FALSE}
 library(kableExtra)
 library(htmltools)
@@ -269,6 +272,14 @@ browsable(
 )
 ```
 
+</br>
+
+After calculating the average final grade, all factor columns ran through a custom function to compare the average final grade of students across different factor levels.
+
+We then combined the results with bind_rows()- levels with averages **< 1** point of the overall mean were considered to have **minimal individual impact**, while those that differed by **≥ 1.5** points were classified to have **significant individual impact**.
+
+</br>
+
 ```{r avg_by_p_edu, echo = FALSE}
 education_vs_means <- formatted %>% # Combines education levels and average final grades for geom_segment
   mutate(
@@ -279,9 +290,8 @@ education_vs_means <- formatted %>% # Combines education levels and average fina
   group_by(both_edu) %>%
   summarise(mean_grade = mean(period3_grade, na.rm = TRUE))
 ```
-</br>
 ```{r parent_ridge, echo=FALSE, fig.align='center'}
-formatted %>%
+parent_ridge <- formatted %>%
   mutate(
     mom_edu_num = as.numeric(as.character(mom_edu)),
     dad_edu_num = as.numeric(as.character(dad_edu)),
@@ -298,31 +308,66 @@ formatted %>%
   theme_linedraw() +
   theme(
     legend.position = "none",
-    panel.spacing = unit(0.5, "lines")
+    panel.spacing = unit(0.5, "lines"),
+    plot.title = element_text(face = "bold", size = 14)
   ) +
   labs(
-    x = "Final Grade", y = "Parents' Edu. Level",
-    title = "Parents' Combined Education Level vs. Student Final Grade"
+    x = "Final Grade", y = "Education Level",
+    title = "Parents' Combined Education Level vs. Final Grade"
   ) +
   coord_cartesian(ylim = c(2.57, 9.25), xlim = c(0, 20))
 ```
-
 ```{r parent_box, echo=FALSE, fig.align='center'}
-formatted %>%
+parent_box <- formatted %>%
   ggplot(aes(x = factor(family_relationship), y = period3_grade, fill = factor(family_support))) +
   geom_boxplot(position = position_dodge(width = 0.75)) +
   theme_linedraw() +
-  labs(x = "Family Relationship (1-5)", fill = "Family Support", y = "Final Grade", title = "Family Educational Support and Relationship") # Optional: clearer labels
+  labs(x = "Family Relationship", fill = "Family Support", y = "Final Grade", title = "Family Relationship vs. Final Grade by Family Support") +
+  theme(
+    plot.title = element_text(face = "bold", size = 14)
+  )
+```
+```{r parent_side_by_side, echo=FALSE, fig.width = 16, fig.height = 6}
+(parent_ridge | plot_spacer() | parent_box) + plot_layout(widths = c(1, 0.1, 1))
 ```
 
-```{r study_internet_box, echo=FALSE, fig.align='center'}
+</br>
+
+Students' average final grades increase with a higher combined parental education level. However, there is no clear relationship between final grades and either family relationship quality or family educational support.
+
+</br>
+
+```{r study_internet_box, echo=FALSE, fig.align='center', fig.width = 6, fig.height = 4}
 formatted %>% # Internet helps studying
   ggplot(aes(x = factor(study_time), y = period3_grade, fill = internet_use)) +
   geom_boxplot() +
-  theme_linedraw() # Internet good 4 studying
+  scale_x_discrete(labels = c(
+    "1" = "<2",
+    "2" = "2-5",
+    "3" = "5-10",
+    "4" = ">10"
+  )) +
+  scale_fill_discrete(labels = c(
+    "no" = "No",
+    "yes" = "Yes"
+  )) +
+  labs(x = "Study Time (hrs)", y = "Final Grade", fill = "Internet", title = "Study Time vs. Final Grade Split By Internet Access") +
+  theme_linedraw() + # Internet good 4 studying
+  theme(
+    plot.title = element_text(face = "bold", size = 14)
+  )
 ```
 
-#### Does weekly study time affect performance consistently across all three grading periods (G1, G2, G3)?
+</br>
+
+Across all buckets of student study time, average final grades are marginally better for students with internet access at home.
+
+</br>
+
+### Does weekly study time affect performance consistently across all terms?
+
+</br>
+
 ```{r study_per_period_box, echo=FALSE, fig.align='center'}
 long_grade_data <- formatted %>% # More studying is better regardless of period
   pivot_longer(cols = starts_with("period"), names_to = "period", values_to = "grade") %>%
@@ -332,49 +377,125 @@ long_grade_data <- formatted %>% # More studying is better regardless of period
     period3_grade = "Period 3"
   ))
 
-long_grade_data %>% ggplot(aes(x = factor(study_time), y = grade)) +
+fail_counts <- long_grade_data %>%
+  filter(grade == 0) %>%
+  group_by(study_time, period) %>%
+  summarise(failures = n(), .groups = "drop")
+
+study_boxes <- long_grade_data %>% ggplot(aes(x = factor(study_time), y = grade)) +
   geom_boxplot(fill = "lightblue") +
+  geom_text(
+    data = fail_counts,
+    aes(
+      x = factor(study_time),
+      y = -1,                     # 👈 position just below the boxplot
+      label = paste0("Fails: ", failures)
+    ),
+    inherit.aes = FALSE,
+    size = 4,
+    color = "red"
+  ) +
   facet_wrap(~period) +
   labs(x = "Study Time:   1 = <2hrs,   2 = 2-5hrs,   3 = 5-10hrs,   4 = >10hrs", y = "Grade", title = "Grades vs. Weekly Study Time Per Period") +
   theme_linedraw()
 ```
-
 ```{r study_across_periods_para, echo=FALSE, fig.align='center'}
-formatted %>% # More study time is better for overall grade trend, sharp drop for (4), maybe overconfidence or too much studying lowers retention of key information.
+study_para <- formatted %>% # More study time is better for overall grade trend, sharp drop for (4), maybe overconfidence or too much studying lowers retention of key information.
   select(period1_grade, period2_grade, period3_grade, study_time) %>%
   pivot_longer(cols = starts_with("period"), names_to = "period", values_to = "grade") %>%
   group_by(study_time, period) %>%
   summarise(mean_grade = mean(grade), .groups = "drop") %>%
-  ggplot(aes(x = period, y = mean_grade, group = study_time, color = factor(study_time))) +
+  ggplot(aes(x = period, y = mean_grade, group = study_time, color = factor(study_time, levels = sort(unique(study_time), decreasing = TRUE)))) +
   geom_line(size = 1.2) +
   geom_point() +
-  labs(x = "Term", y = "Average Grade", color = "Study Time (Hours)", title = "Grade Average Trend by Study time") +
-  theme_linedraw()
+  labs(x = "Term", y = "Average Grade", color = "Study Time", title = "Grade Average Trend by Study time") +
+  theme_linedraw() +
+  scale_x_discrete(labels = c(
+    period1_grade = "1",
+    period2_grade = "2",
+    period3_grade = "Final"
+  )) +
+  coord_cartesian(ylim = c(10, 12.75)) +
+  scale_y_continuous(breaks = seq(10, 13, by = .5))
+
+
+exclude_para <- formatted %>%
+  select(period1_grade, period2_grade, period3_grade, study_time) %>%
+  pivot_longer(cols = starts_with("period"), names_to = "period", values_to = "grade") %>%
+  filter(grade > 0) %>% # 🔍 filter out failing/zero grades
+  group_by(study_time, period) %>%
+  summarise(mean_grade = mean(grade), .groups = "drop") %>%
+  ggplot(aes(
+    x = period,
+    y = mean_grade,
+    group = study_time,
+    color = factor(study_time, levels = sort(unique(study_time), decreasing = TRUE))
+  )) +
+  geom_line(size = 1.2) +
+  geom_point() +
+  labs(
+    x = "Term", y = "Average Grade", color = "Study Time",
+    title = "Grade Average Trend by Study Time (Excluding Failing Grades)"
+  ) +
+  theme_linedraw() +
+  theme(legend.position = "none") +
+  scale_x_discrete(labels = c(
+    period1_grade = "1",
+    period2_grade = "2",
+    period3_grade = "Final"
+  )) +
+  coord_cartesian(ylim = c(10, 12.75)) +
+  scale_y_continuous(breaks = seq(10, 13, by = .5))
+```
+```{r study_side_by_side, echo=FALSE, fig.width = 16, fig.height = 6}
+study_boxes
+(study_para | plot_spacer() | exclude_para) + plot_layout(widths = c(1, 0.1, 1))
 ```
 
-### Activities and Social Life
-#### Do students who have a romantic relationship perform differently from those who don’t?
+</br>
+
+The top plot shows the distribution of student grades across different weekly study time categories for each academic period. The red text notates the number of failures for those time periods. Students in groups 3 and 4 have moderately higher mean grades across all periods, but still have failures in the final period illustrating studying alone does not prevent poor grades.
+
+The bottom left plot shows the trending grades of students in each of the 4 study groups throughout the school year. The sharpest decline is group 4 from term 2 to the final- indicating either burnout or lack of information retention due to studying > 10 hours a week. The consistent decline across all 4 groups from term 1 to final indicated all the averages are being dragged down by failing students.
+
+The bottom right plot excludes failed students from average grade calculations. Now, all four groups show a consistent positive trend in averages with higher study times being associated with higher averages.
+
+## Activities and Social Life
+### Do romantic relationships affect student performance?
+
+</br>
+
 ```{r romance_plot, echo=FALSE, fig.align='center'}
 formatted %>%
   ggplot(aes(x = factor(romantic), y = period3_grade)) +
   geom_boxplot() # w/ go out w/ friends
 ```
-#### Is there a relationship between students’ participation in extracurricular activities and their number of absences?
+
+</br>
+
+Text about romance
+
+</br>
+
+### Is there a link between extracurricular activities and absences?
+
+</br>
+
 ```{r activities_absences, echo=FALSE, fig.align='center'}
 ```
 
-### Lauren - Health & Lifestyle
-### Lauren - Academic Performance
+</br>
 
+Text about absences and activities
 
+</br>
 
-## **Conclusions**
+## Lauren - Health & Lifestyle
+## Lauren - Academic Performance
+## Conclusions
 ### Limitations
 ### Future Steps
-
-
-
-## **References**
+## References
 
 > Shamim, A. (n.d.). Math-Students Performance Data [Data set]. Kaggle. <https://www.kaggle.com/datasets/adilshamim8/math-students/data>
 
