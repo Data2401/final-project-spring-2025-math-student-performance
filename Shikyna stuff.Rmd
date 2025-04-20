@@ -1,0 +1,209 @@
+---
+title: "Shikyna stuff"
+author: "RIntro_William"
+date: "2025-04-18"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+suppressMessages(library(dplyr))    # Data manipulation
+suppressMessages(library(ggplot2))  # Plotting
+suppressMessages(library(plotly))   # Plotting
+suppressMessages(library(readr))    # Reading the dataset
+suppressMessages(library(knitr))
+```
+
+## From a gazillion datasets, why this one?
+
+- Clean, Structured and small:
+Easy to work with, making it suitable for both beginners and intermediate learners. Even a 7 year old would be able to look at it and make some comment on it.
+
+- Focused on Math Performance:
+Unlike other data sets, this one is specified on math student performance (like a zoom in), hence more insights and you can go in more depth.
+
+- Rich Demographic Features which demonstrate equity and policy insights:
+Includes data like gender, parental education, lunch type, and test preparation.
+
+- Equity and Policy Insights:
+Enables exploration of how social and economic factors influence education.
+
+------------------------------------------------------------------------
+
+## Students and alcohol? Romantic relationships? Is that even legal?
+
+Valid question.
+
+- Reality Check:
+Just because something is not legal doesn’t mean it doesn’t happen. We're trying to understand how real-life behaviors (like drinking or dating) might affect school performance.
+
+- Cultural Context:
+The dataset is from Portugal, where norms can be a little different. For example, some families may introduce teens to alcohol in small, supervised amounts, especially during meals.
+
+- Insight, Not Endorsement:
+Including this data doesn’t mean anyone’s encouraging it. It’s about spotting trends. Like—“Do students in relationships do better or worse in math?” or “Is there a pattern between alcohol use and test scores?”
+
+- Helping, Not Policing: The goal is to help educators and policymakers understand what’s really going on so they can support students better, not to get anyone in trouble.
+
+------------------------------------------------------------------------
+
+```{r echo=FALSE}
+library(dplyr)
+library(plotly)
+library(DT)
+``` 
+
+
+```{r echo=FALSE}
+raw <- read.csv("Math-Students.csv")
+#Rename cols, convert to factors, add any necessary levels, transmute to drop old columns
+formatted <- raw %>% transmute(
+  school = as.factor(school),
+  sex = as.factor(sex),
+  age = age,
+  address = as.factor(address),
+  fam_size = as.factor(famsize),
+  parental_stat = as.factor(Pstatus),
+  mom_edu = factor(Medu, levels = 0:4, ordered = TRUE),
+  dad_edu = factor(Fedu, levels = 0:4, ordered = TRUE),
+  mom_job = as.factor(Mjob),
+  dad_job = as.factor(Fjob),
+  attend_reason = as.factor(reason),
+  guardian = as.factor(guardian),
+  travel_time = traveltime,
+  study_time = studytime,
+  failures = failures,
+  school_support = as.factor(schoolsup),
+  family_support = as.factor(famsup),
+  extra_paid_classes = as.factor(paid),
+  activities = as.factor(activities),
+  nursery_school = as.factor(nursery),
+  pursue_higher_edu = as.factor(higher),
+  internet_use = as.factor(internet),
+  romantic = as.factor(romantic),
+  family_relationship = factor(famrel, levels = 1:5, ordered = TRUE),
+  free_time = factor(freetime, levels = 1:5, ordered = TRUE),
+  go_out_w_friends = factor(goout, levels = 1:5, ordered = TRUE),
+  workday_alcohol = factor(Dalc, levels = 1:5, ordered = TRUE),
+  weekend_alcohol = factor(Walc, levels = 1:5, ordered = TRUE),
+  health = factor(health, levels = 1:5, ordered = TRUE),
+  absences = absences,
+  period1_grade = G1,
+  period2_grade = G2,
+  period3_grade = G3
+)
+```
+
+```{r}
+datatable(formatted, 
+          options = list(pageLength = 10,
+                         scrollX = TRUE, 
+                         autoWidth = TRUE, 
+                         columnDefs = list(list(className = 'dt-center', targets = "_all"))), 
+          rownames = FALSE)
+sum(is.na(formatted))
+```
+#### 🏫 School & Demographics
+
+- Do students from different schools (GP vs MS) show significant differences in final performance (G3)? INSIGNIFICANT
+
+GP = Gabriel Pereira
+MS = Mousinho da Silveira
+
+```{r}
+# Prepare the data
+plot_data <- formatted %>%
+  select(school, period3_grade) %>%   # Select relevant columns (school and final grade G3)
+  group_by(school) %>%     # Group by school (GP vs MS)
+  summarise(
+    mean_period3 = mean(period3_grade, na.rm = TRUE),
+    median_period3 = median(period3_grade, na.rm = TRUE),
+    sd_period3 = sd(period3_grade, na.rm = TRUE),
+    count = n()
+  )
+
+# View summary statistics
+plot_data
+
+#plot
+formatted %>%
+  ggplot(aes(x = school, y = period3_grade, fill = school)) +
+  geom_violin(trim = FALSE, alpha = 0.8, color = NA) +
+  geom_boxplot(width = 0.1, fill = "white", outlier.color = "white", outlier.shape = 16) +
+  scale_fill_manual(values = c("GP" = "red", "MS" = "blue")) +
+  labs(
+    title = "Final Grade Distribution by School",
+    subtitle = "Comparison of GP vs MS students' performance",
+    x = "School",
+    y = "Final Grade (Period 3)"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    plot.subtitle = element_text(size = 11),
+    axis.text = element_text(color = "gray20"),
+    panel.grid.major.y = element_line(color = "gray85"),
+    legend.position = "top"
+  )
+```
+
+
+
+
+- Is there an interaction between romantic relationships and gender on the final grade?
+
+```{r}
+formatted %>%
+  ggplot(aes(x = romantic, y = period3_grade, fill = sex)) +
+  geom_boxplot(position = position_dodge(0.8), width = 0.6, outlier.shape = 16, alpha = 0.7) +
+  scale_fill_manual(values = c("F" = "#FF69B4", "M" = "#1E90FF")) +
+  labs(
+    title = "Performance by Romantic Status and Gender",
+    subtitle = "Do relationships affect boys and girls differently?",
+    x = "Romantic Relationship",
+    y = "Final Grade (Period 3)",
+    fill = "Gender"
+  ) +
+  stat_summary(fun = mean, geom = "point", shape = 23, size = 3, fill = "white", color = "black", position = position_dodge(0.8)) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    plot.subtitle = element_text(size = 11),
+    axis.text = element_text(color = "gray20"),
+    panel.grid.major.y = element_line(color = "gray85"),
+    legend.position = "top"
+  )
+```
+
+
+
+
+#### 👪 Family Background
+
+
+- Does having family support at home (famsup) help students perform better in school?
+
+
+```{r}
+formatted %>%
+  ggplot(aes(x = as.factor(period3_grade), fill = family_support)) +
+  geom_bar(position = position_dodge(width = 0.7), width = 0.6, alpha = 0.9) +
+  scale_fill_manual(values = c("yes" = "red", "no" = "blue")) +
+  labs(
+    title = "Impact of Family Support on Student Performance",
+    subtitle = "Distribution of Final Math Grades Based on Family Support",
+    x = "Final Grade",
+    y = "Number of Students",
+    fill = "Family Support at Home"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    plot.subtitle = element_text(size = 11),
+    axis.text = element_text(color = "gray20"),
+    panel.grid.major.y = element_line(color = "gray85"),
+    legend.position = "top"
+  )
+```
+
+
