@@ -112,7 +112,7 @@ We utilized the following libraries:
 
 ```{r echo=FALSE}
 raw <- read.csv("Math-Students.csv")
-#Rename cols, convert to factors, add any necessary levels, transmute to drop old columns
+# Rename cols, convert to factors, add any necessary levels, transmute to drop old columns
 formatted <- raw %>% transmute(
   school = as.factor(school),
   sex = as.factor(sex),
@@ -152,12 +152,15 @@ sum(is.na(formatted))
 ```
 
 ```{r}
-datatable(formatted, 
-          options = list(pageLength = 10,
-                         scrollX = TRUE, 
-                         autoWidth = TRUE, 
-                         columnDefs = list(list(className = 'dt-center', targets = "_all"))), 
-          rownames = FALSE)
+datatable(formatted,
+  options = list(
+    pageLength = 10,
+    scrollX = TRUE,
+    autoWidth = TRUE,
+    columnDefs = list(list(className = "dt-center", targets = "_all"))
+  ),
+  rownames = FALSE
+)
 ```
 Character columns have been converted to factors, and those with levels have been ordered.
 
@@ -181,19 +184,24 @@ There are no missing values in the dataset.
 ## Exploratory Data Analysis
 
 ```{r fig.align='center'}
-#Make correlation table
-cor_df <- formatted %>% select(where(is.numeric)) %>% cor(use = "complete.obs") %>% 
-  as.table() %>% as.data.frame()
+# Make correlation table
+cor_df <- formatted %>%
+  select(where(is.numeric)) %>%
+  cor(use = "complete.obs") %>%
+  as.table() %>%
+  as.data.frame()
 
 colnames(cor_df) <- c("Var1", "Var2", "Correlation")
 
-cor_df %>% ggplot(aes(Var1, Var2, fill = Correlation)) + 
-  geom_tile(color = 'white') + 
-  scale_fill_gradient2(low = '#067bc2', mid = 'white', high = '#fe4a49', 
-                       midpoint = 0, limit = c(-1,1), name = 'Correlation') +
-  labs(title = "Correlation Heatmap", x = '', y = '') + 
-  theme_minimal() + 
-  coord_fixed() + 
+cor_df %>% ggplot(aes(Var1, Var2, fill = Correlation)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient2(
+    low = "#067bc2", mid = "white", high = "#fe4a49",
+    midpoint = 0, limit = c(-1, 1), name = "Correlation"
+  ) +
+  labs(title = "Correlation Heatmap", x = "", y = "") +
+  theme_minimal() +
+  coord_fixed() +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
 ```
@@ -226,8 +234,14 @@ cor_df %>% ggplot(aes(Var1, Var2, fill = Correlation)) +
 
 - What is the relationship between alcohol consumption (weekdays Dalc vs weekends Walc) and final grades?
 ```{r}
-formatted %>% group_by(weekend_alcohol) %>% mutate(AvgFinalGrade= mean(final_grade)) %>% count(AvgFinalGrade)
-formatted %>% group_by(workday_alcohol) %>% mutate(AvgFinalGrade= mean(final_grade)) %>% count(AvgFinalGrade)
+formatted %>%
+  group_by(weekend_alcohol) %>%
+  mutate(AvgFinalGrade = mean(final_grade)) %>%
+  count(AvgFinalGrade)
+formatted %>%
+  group_by(workday_alcohol) %>%
+  mutate(AvgFinalGrade = mean(final_grade)) %>%
+  count(AvgFinalGrade)
 ```
 
 Drinking on the weekend vs drinking on the weekday has little to no effect on final math grade performance. 
@@ -237,10 +251,9 @@ Students were more likely to do worse in math class if they drink during the wee
 
 - Do students with internet access and more activities have more school absences than others?
 ```{r}
-
 formatted %>%
   group_by(internet_use, activities) %>%
-  mutate(mean_absences = mean(absences, na.rm = TRUE)) %>% 
+  mutate(mean_absences = mean(absences, na.rm = TRUE)) %>%
   ggplot(aes(x = mean_absences, fill = activities)) +
   geom_density(alpha = 0.5) +
   facet_grid(internet_use ~ activities) +
@@ -249,7 +262,7 @@ formatted %>%
     y = "Density",
     title = "Distribution of Absences by Internet Use and Activities Participation",
     fill = "Internet Use"
-  ) 
+  )
 ```
 
 
@@ -262,25 +275,28 @@ Students who participate in activities are more likely to come to school than th
 - Do students who fail more subjects in the past continue to perform poorly in current grading periods?
 
 ```{r}
-formatted %>% ggplot(aes(x= as.factor(failures), y= period1_grade)) +
-  geom_boxplot(outlier.shape = NA) + geom_jitter(color= "slateblue", size=2, alpha=1/2)+
+formatted %>% ggplot(aes(x = as.factor(failures), y = period1_grade)) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_jitter(color = "slateblue", size = 2, alpha = 1 / 2) +
   labs(
     x = "Number of Past Failures",
-    y = "Period 1 Grade", 
+    y = "Period 1 Grade",
     title = "A Higher Number of Past Failures Leads to A Lower Period 1 Math Grade"
   )
-formatted %>% ggplot(aes(x= as.factor(failures), y= period2_grade)) +
-  geom_boxplot(outlier.shape = NA) + geom_jitter(color= "hotpink1", size=2, alpha=1/2)+
+formatted %>% ggplot(aes(x = as.factor(failures), y = period2_grade)) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_jitter(color = "hotpink1", size = 2, alpha = 1 / 2) +
   labs(
     x = "Number of Past Failures",
-    y = "Period 2 Grade", 
+    y = "Period 2 Grade",
     title = "A Higher Number of Past Failures Leads to A Lower Period 2 Math Grade"
   )
-formatted %>% ggplot(aes(x= as.factor(failures), y= final_grade)) +
-  geom_boxplot(outlier.shape = NA) + geom_jitter(color= "springgreen2", size=2, alpha=1/2)+
+formatted %>% ggplot(aes(x = as.factor(failures), y = final_grade)) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_jitter(color = "springgreen2", size = 2, alpha = 1 / 2) +
   labs(
     x = "Number of Past Failures",
-    y = "Final Grade", 
+    y = "Final Grade",
     title = "A Higher Number of Past Failures Leads to A Lower Final Math Grade"
   )
 ```
@@ -290,21 +306,23 @@ formatted %>% ggplot(aes(x= as.factor(failures), y= final_grade)) +
  How consistent are students’ performances across G1, G2, and G3? Is there improvement or decline over time?
 
 ```{r}
-
 avg_period1 <- formatted %>% summarise(avg = mean(period1_grade, na.rm = TRUE))
 avg_period2 <- formatted %>% summarise(avg = mean(period2_grade, na.rm = TRUE))
-avg_final   <- formatted %>% summarise(avg = mean(final_grade, na.rm = TRUE))
+avg_final <- formatted %>% summarise(avg = mean(final_grade, na.rm = TRUE))
 avg_grades_long <- data.frame(
   Period = factor(c("Period 1", "Period 2", "Final"),
-                  levels = c("Period 1", "Period 2", "Final")),
+    levels = c("Period 1", "Period 2", "Final")
+  ),
   Average_Grade = c(avg_period1$avg, avg_period2$avg, avg_final$avg)
 )
 ggplot(avg_grades_long, aes(x = Period, y = Average_Grade, group = 1)) +
   geom_line(color = "hotpink2", linewidth = 1.5) +
   geom_point(size = 3, color = "darkblue") +
-  labs(title = "Average Math Grades Over Time",
-       x = "Grade Period",
-       y = "Average Grade") +
+  labs(
+    title = "Average Math Grades Over Time",
+    x = "Grade Period",
+    y = "Average Grade"
+  ) +
   theme_minimal()
 ```
 
@@ -328,6 +346,3 @@ There was a decline in average math grade per grading period over time.
 > Dua, D., & Graff, C. (2017). Student Performance Data Set. UCI Machine Learning Repository. https://archive.ics.uci.edu/dataset/320/student+performance
 
 > P. Cortez and A. Silva. Using Data Mining to Predict Secondary School Student Performance. In A. Brito and J. Teixeira (Eds.), Proceedings of 5th FUture BUsiness TEChnology Conference (FUBUTEC 2008), pp. 5-12, Porto, Portugal, April 2008, EUROSIS, ISBN 978-9077381-39-7.
-
-
-

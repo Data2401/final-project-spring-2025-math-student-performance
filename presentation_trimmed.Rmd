@@ -34,38 +34,46 @@ suppressMessages(library(kableExtra))
 ```
 
 ## Introduction
-This project dives deep into a dataset named from the [UCI Machine Learning Repository](https://www.kaggle.com/datasets/adilshamim8/math-students/data), which contains data on student performance in math programs at two Portuguese secondary schools. The data was collected using school reports and student questionaires and features academic, personal, and social aspects of a student's life.
+
+- Dataset: [UCI Machine Learning Repository](https://www.kaggle.com/datasets/adilshamim8/math-students/data)
+- Topic: Student performance in math programs
+- Collection: 
+  - Two Portuguese secondary schools
+  - School reports and questionaires
+- Features: Academic, personal, and social aspects of a student's life
 
 <br>
 
 ### Why Is This Interesting?
-This dataset is interesting because it shows how multiple aspects of a student's life correlate to their scores in school. In addition, the features (G1, G2, G3) represent period 1-3 of a school year (similar to a midterm in the United States being period 1/2 and finals being 2/2.) This is interesting because you can see if a student's score decreases over time (falling behind gradually due to external factors) or maintains a consistent grade throughout the year- these features also allow a ML model to predict G3 based off G1, G2, and the other external factors.
 
-<br>
-
-### Objective
-Our goal is to determine factors that have the most significant impact on student performance in the math program. In addition, we hope to discover factors which may seem influential based on intuition but prove otherwise after analyzing the data.
+- Clean, Structured and Small
+- Focused on Math Performance: More opportunity for in-depth insights
+- Rich Demographic Features: Gender, parental education, lunch type, etc
+- Equity and Policy: Can explore impact of social and economic factors
+- Portugal Differences
+  - Highschool is 3 years; 15-18 years old
+  - Each year subdivided into thirds
+  - Drinking age - 18
+  - Age of consent (relationship status) - 14
 
 ---
 
-## Categories Analyzed
+## Objective
+
+- Identify significant influencers of math performance
+- Test the data to see if reality rejects our hypotheses
 
 <br>
 
-- **Logistics & School Choice**
-  -   Does travel time to school affect student grades?
-- **School & Demographics**
-  -   Do students from different schools (GP vs MS) show significant differences in final performance (G3)?
-- **Family Background**
-  -   Do students with higher parental education (Medu/Fedu) perform better in math?
-- **Academic Support & Study Habits**
-  -   Which factors are the most predictive of final grades?
-- **Activities & Social Life**
-  -   Do students who have a romantic relationship perform differently from those who don’t?
-- **Health & Lifestyle**
-  -   What is the relationship between alcohol consumption (weekdays Dalc vs weekends Walc) and final grades?
-- **Academic Performance**
-  -   How consistent are students’ performances across G1, G2, and G3? Is there improvement or decline over time?
+### Categories Analyzed
+
+- Logistics & School Choice
+- School & Demographics
+- Family Background
+- Academic Support & Study Habits
+- Activities & Social Life
+- Health & Lifestyle
+- Academic Performance
 
 ---
 
@@ -134,12 +142,13 @@ formatted <- raw %>% transmute(
   absences = absences,
   period1_grade = G1,
   period2_grade = G2,
-  period3_grade = G3
+  final_grade = G3
 )
 sum(is.na(formatted))
 ```
 
-Using transmute(), we changed character columns to factors, and those with levels have been ordered. We used transmute instead of mutate so original columns would drop and there would be no redundant data. There are no missing values in the dataset which was confirmed with sum(is.na()).
+- transmute(): Factors and levels.
+- Missing values?
 
 ```{r datatable, echo=FALSE}
 datatable(formatted,
@@ -153,11 +162,22 @@ datatable(formatted,
 )
 ```
 
-The "DT" package is an R interface to the Javascript library "DataTables". With help from the documentation, we enabled horizontal scrolling, auto column widths, and centered values within each column via a list of lists.
+---
 
--   **columnDefs:** passed to JS as an array of objects (list of lists). Why? Each inner list can apply a different css class or apply to a different set of columns. Options, options, options!
--   **dt-center:** applies the center data css class
--   **targets:** applies settings to all columns
+## Key Terms
+
+<br>
+
+- **School**: Either Gabriel Pereira or Mousinho da Silveira
+- **Address**: Urban or Rural 
+- **Attendance Reason**: Close to 'home', school 'reputation', 'course' preference or 'other'
+- **Extra Paid Classes**: Extra paid classes within the course subject (Math or Portuguese). Yes or No.
+- **Nursery School**: Portugal's version of Pre-School. Attended? Yes or No.
+- **Family Support**: Family educational suppor. Yes or No. 
+- **Family Relationship**: Quality of family relationships. Scale from 1-5, very bad to excellent. 
+- **Workday Alcohol**: How much drinking during the week. Scale from 1-5, low to high level of drinking. 
+- **Weekend Alcohol**: How much drinking during the weekend. Scale from 1-5, low to high level of drinking. 
+- **Health**: Current health status. Scale from 1-5, very bad to very good. 
 
 ---
 
@@ -185,29 +205,142 @@ cor_df %>% ggplot(aes(Var1, Var2, fill = Correlation)) +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
 ```
 
-A quick way for us to explore the data was via correlation heatmap. Strong positive correlations are set to red, while strongly negative to blue. This plot was used as a starting point for the questions we wanted answered, as well as basic plots that could then benefit from a third degree of comparison (factors).
-
-**Intuitive relationships:**
+Missing variables: Factors
 
 -   Grades from all three periods are strongly positively correlated.
 -   Grades are negatively correlated with the number of failures.
-
-**Some relationships to look into more:**
-
 -   Travel time is inversely proportional to study time.
 -   Number of failures is positively correlated to travel time; negatively correlated with study time.
 
-**Features not in the correlation heatmap: (Potential 3rd Degrees of Comparison)**
+---
 
--   All factor features, including but not limited to: parental, financial, and social details.
+## School & Demographics
+
+<br>
+
+- Do students from different schools show significant differences in final performance? INSIGNIFICANT
+- Is there an interaction between romantic relationships and gender on final grade?
 
 ---
 
-## Shikyna - School & Demographics
+### Do students from different schools show significant differences in final grade?
+```{r compare_schools, echo=FALSE, fig.align='center'}
+# Prepare the data
+plot_data <- formatted %>%
+  select(school, final_grade) %>%   # Select relevant columns (school and final grade G3)
+  group_by(school) %>%     # Group by school (GP vs MS)
+  summarise(
+    mean_period3 = mean(final_grade, na.rm = TRUE),
+    median_period3 = median(final_grade, na.rm = TRUE),
+    sd_period3 = sd(final_grade, na.rm = TRUE),
+    count = n()
+  )
+
+# View summary statistics
+#plot_data
+
+#plot
+formatted %>%
+  ggplot(aes(x = school, y = final_grade, fill = school)) +
+  geom_violin(trim = FALSE, alpha = 0.8, color = NA) +
+  geom_boxplot(width = 0.1, fill = "white", outlier.color = "white", outlier.shape = 16) +
+  scale_fill_manual(values = c("GP" = "red", "MS" = "blue")) +
+  labs(
+    title = "Final Grade Distribution by School",
+    x = "School",
+    y = "Final Grade"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    plot.subtitle = element_text(size = 11),
+    axis.text = element_text(color = "gray20"),
+    panel.grid.major.y = element_line(color = "gray85"),
+    legend.position = "top"
+  ) +
+  scale_x_discrete(labels = c(
+    "GP" = "Gabriel Pereira",
+    "MS" = "Mousinho da Silveria"
+  ))
+```
+
+<br>
+
+The selection of school has no evidence of affecting student performance.
 
 ---
 
-## Shikyna - Family Background
+### Is there an interaction between romantic relationships and gender on the final grade?
+```{r romance_gender, echo=FALSE, fig.align='center'}
+formatted %>%
+  ggplot(aes(x = romantic, y = final_grade, fill = sex)) +
+  geom_boxplot(position = position_dodge(0.8), width = 0.6, outlier.shape = 16, alpha = 0.7) +
+  scale_fill_manual(values = c("F" = "#FF69B4", "M" = "#1E90FF")) +
+  labs(
+    title = "Final Grade by Relatonship Status split by Gender",
+    x = "Relationship Status",
+    y = "Final Grade",
+    fill = "Gender"
+  ) +
+  stat_summary(fun = mean, geom = "point", shape = 23, size = 3, fill = "white", color = "black", position = position_dodge(0.8)) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    plot.subtitle = element_text(size = 11),
+    axis.text = element_text(color = "gray20"),
+    panel.grid.major.y = element_line(color = "gray85"),
+    legend.position = "top"
+  ) +
+  scale_x_discrete(labels = c(
+    "no" = "Single",
+    "yes" = "Dating"
+  ))
+```
+
+<br>
+
+There is correlation between relationship status and final grades when comparing by gender. 
+
+Dating Females have a lower median, minimum, and IQR.
+
+Dating Males are affected in the opposite manner.
+
+---
+
+## Family Background
+
+<br>
+
+- Does having family educational support at home help students perform better in school?
+
+---
+
+### Does having family educational support at home help students perform better in school?
+```{r family_support_better_school, echo=FALSE, fig.align='center'}
+formatted %>%
+  ggplot(aes(x = as.factor(final_grade), fill = family_support)) +
+  geom_bar(position = position_dodge(width = 0.7), width = 0.6, alpha = 0.9) +
+  scale_fill_manual(values = c("yes" = "red", "no" = "blue")) +
+  labs(
+    title = "Impact of Family Support on Student Performance",
+    subtitle = "Distribution of Final Math Grades Based on Family Support",
+    x = "Final Grade",
+    y = "Number of Students",
+    fill = "Family Support at Home"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    plot.subtitle = element_text(size = 11),
+    axis.text = element_text(color = "gray20"),
+    panel.grid.major.y = element_line(color = "gray85"),
+    legend.position = "top"
+  )
+```
+
+<br>
+
+For every final grade, there are more students that have educational support. Students with support were oversampled, so this plot of student counts does not indicate anything.
 
 ---
 
@@ -226,7 +359,7 @@ A quick way for us to explore the data was via correlation heatmap. Strong posit
 
 ```{r significance_setup, echo=FALSE}
 # Irrelevant Factors
-overall_avg_final <- mean(formatted$period3_grade)
+overall_avg_final <- mean(formatted$final_grade)
 
 # Get factor columns
 factor_cols <- names(formatted)[sapply(formatted, is.factor)]
@@ -236,7 +369,7 @@ factor_effects <- lapply(factor_cols, function(var) { # Loop through each factor
   formatted %>%
     group_by(.data[[var]]) %>% # Group by factor
     summarise( # Get average final grade for the factor
-      avg_grade = mean(period3_grade, na.rm = TRUE),
+      avg_grade = mean(final_grade, na.rm = TRUE),
       .groups = "drop"
     ) %>%
     mutate( # Make new column w/ group level as character
@@ -292,9 +425,7 @@ browsable(
 
 </br>
 
-After calculating the average final grade, all factor columns ran through a custom function to compare the average final grade of students across different factor levels.
-
-We then combined the results with bind_rows()- levels with averages **< 1** point of the overall mean were considered to have **minimal individual impact**, while those that differed by **≥ 1.5** points were classified to have **significant individual impact**.
+Compared all factors' average to overall average.
 
 ---
 
@@ -307,7 +438,7 @@ education_vs_means <- formatted %>% # Combines education levels and average fina
     both_edu = mom_edu_num + dad_edu_num
   ) %>%
   group_by(both_edu) %>%
-  summarise(mean_grade = mean(period3_grade, na.rm = TRUE))
+  summarise(mean_grade = mean(final_grade, na.rm = TRUE))
 ```
 ```{r parent_ridge, echo=FALSE, fig.align='center'}
 parent_ridge <- formatted %>%
@@ -316,7 +447,7 @@ parent_ridge <- formatted %>%
     dad_edu_num = as.numeric(as.character(dad_edu)),
     both_edu = mom_edu_num + dad_edu_num
   ) %>%
-  ggplot(aes(y = factor(both_edu), x = period3_grade, fill = factor(both_edu))) +
+  ggplot(aes(y = factor(both_edu), x = final_grade, fill = factor(both_edu))) +
   geom_density_ridges(alpha = 0.5, bandwidth = 2) +
   geom_vline(xintercept = 15, linetype = "dotted") +
   geom_segment(
@@ -338,7 +469,7 @@ parent_ridge <- formatted %>%
 ```
 ```{r parent_box, echo=FALSE, fig.align='center'}
 parent_box <- formatted %>%
-  ggplot(aes(x = factor(family_relationship), y = period3_grade, fill = factor(family_support, levels = c("no","yes"), labels = c("No","Yes")))) +
+  ggplot(aes(x = factor(family_relationship), y = final_grade, fill = factor(family_support, levels = c("no","yes"), labels = c("No","Yes")))) +
   geom_boxplot(position = position_dodge(width = 0.75)) +
   theme_linedraw() +
   labs(x = "Family Relationship", fill = "Family Support", y = "Final Grade", title = "Family Relationship vs. Final Grade by Family Support") +
@@ -356,16 +487,16 @@ parent_box <- formatted %>%
 
 </br>
 
-**Left:** Students' average final grades increase with a higher combined parental education level.
+**Left:** Students' average final grade increases with higher parental education.
 
-**Right:** There is no clear relationship between final grades and either family relationship quality or family educational support.
+**Right:** No relationship between final grade and either family relationship quality / educational support.
 
 ---
 
 ### Which factors are most predictive of final grades?
 ```{r study_internet_box, echo=FALSE, fig.align='center', out.width='40%'}
 formatted %>% # Internet helps studying
-  ggplot(aes(x = factor(study_time), y = period3_grade, fill = factor(internet_use, levels = c("no", "yes"), labels = c("No", "Yes")))) +
+  ggplot(aes(x = factor(study_time), y = final_grade, fill = factor(internet_use, levels = c("no", "yes"), labels = c("No", "Yes")))) +
   geom_boxplot() +
   scale_x_discrete(labels = c(
     "1" = "<2",
@@ -386,7 +517,7 @@ formatted %>% # Internet helps studying
 
 </br>
 
-Across all buckets of student study time, average final grades are marginally better for students with internet access at home.
+Final grades are marginally better for students with internet access at home.
 
 ---
 
@@ -397,7 +528,7 @@ long_grade_data <- formatted %>% # More studying is better regardless of period
   mutate(period = recode(period,
     period1_grade = "Period 1",
     period2_grade = "Period 2",
-    period3_grade = "Period 3"
+    final_grade = "Period 3"
   ))
 
 fail_counts <- long_grade_data %>%
@@ -425,7 +556,7 @@ study_boxes <- long_grade_data %>% ggplot(aes(x = factor(study_time), y = grade)
 ```
 ```{r study_across_periods_para, echo=FALSE, fig.align='center'}
 study_para <- formatted %>% # More study time is better for overall grade trend, sharp drop for (4), maybe overconfidence or too much studying lowers retention of key information.
-  select(period1_grade, period2_grade, period3_grade, study_time) %>%
+  select(period1_grade, period2_grade, final_grade, study_time) %>%
   pivot_longer(cols = starts_with("period"), names_to = "period", values_to = "grade") %>%
   group_by(study_time, period) %>%
   summarise(mean_grade = mean(grade), .groups = "drop") %>%
@@ -437,7 +568,7 @@ study_para <- formatted %>% # More study time is better for overall grade trend,
   scale_x_discrete(labels = c(
     period1_grade = "1",
     period2_grade = "2",
-    period3_grade = "Final"
+    final_grade = "Final"
   )) +
   coord_cartesian(ylim = c(10, 12.75)) +
   scale_y_continuous(breaks = seq(10, 13, by = .5)) +
@@ -445,7 +576,7 @@ study_para <- formatted %>% # More study time is better for overall grade trend,
 
 
 exclude_para <- formatted %>%
-  select(period1_grade, period2_grade, period3_grade, study_time) %>%
+  select(period1_grade, period2_grade, final_grade, study_time) %>%
   pivot_longer(cols = starts_with("period"), names_to = "period", values_to = "grade") %>%
   filter(grade > 0) %>% # 🔍 filter out failing/zero grades
   group_by(study_time, period) %>%
@@ -466,7 +597,7 @@ exclude_para <- formatted %>%
   scale_x_discrete(labels = c(
     period1_grade = "1",
     period2_grade = "2",
-    period3_grade = "Final"
+    final_grade = "Final"
   )) +
   coord_cartesian(ylim = c(10, 12.75)) +
   scale_y_continuous(breaks = seq(10, 13, by = .5)) +
@@ -477,11 +608,11 @@ study_boxes
 (study_para | plot_spacer() | exclude_para) + plot_layout(widths = c(1, 0.1, 1))
 ```
 
-**Top:** Shows the distribution of student grades across different weekly study time categories for each academic period. The red text notates the number of failures for those time periods. Students in groups 3 and 4 have moderately higher mean grades across all periods, but still have failures in the final period illustrating studying alone does not prevent poor grades.
+**Top:** Higher study times = higher grades.
 
-**Bottom Left:** Shows the trending grades of students in each of the 4 study groups throughout the school year. The sharpest decline is group 4 from term 2 to the final- indicating either burnout or lack of information retention due to studying > 10 hours a week. The consistent decline across all 4 groups from term 1 to final indicated all the averages are being dragged down by failing students.
+**Bottom Left:** Downward trend, especially study group 4- burnout or information overload.
 
-**Bottom Right:** Excludes failed students from average grade calculations. Now, all four groups show a consistent positive trend in averages with higher study times being associated with higher averages.
+**Bottom Right:** Excludes failed students from average grade calculations- all trends now positive.
 
 ---
 
@@ -497,7 +628,7 @@ study_boxes
 ### Do romantic relationships affect student performance?
 ```{r romance_plot, echo=FALSE, fig.width = 16, fig.height = 8, fig.align='center', out.width='70%'}
 rom1 <- formatted %>%
-  ggplot(aes(x = factor(go_out_w_friends), y = period3_grade, fill = factor(romantic, levels = c("no","yes"), labels = c("Single","Dating")))) +
+  ggplot(aes(x = factor(go_out_w_friends), y = final_grade, fill = factor(romantic, levels = c("no","yes"), labels = c("Single","Dating")))) +
   geom_boxplot(position = position_dodge(width = .75)) +
   labs(x = "Friend Time", y = "Final Grade", fill = "Status", title = "Frequency of Going Out With Friends vs Final Grade Split by Relationship Status") +
   scale_fill_manual(
@@ -506,7 +637,7 @@ rom1 <- formatted %>%
   theme_linedraw()
 
 rom2 <- formatted %>%
-  ggplot(aes(fill = factor(go_out_w_friends), x = period3_grade)) +
+  ggplot(aes(fill = factor(go_out_w_friends), x = final_grade)) +
   geom_density(alpha = .5) +
   annotate("rect", xmin = 0, xmax = 6, ymin = 0, ymax = .055, fill = NA, color = "red", alpha = .33) +
   labs(x = "Final Grade", y = "Density", fill = "Friend Time", title = "Frequency of Going Out With Friends vs Final Grade") +
@@ -518,11 +649,9 @@ rom2 <- formatted %>%
 
 </br>
 
-**Left:** Single students consistently achieve higher scores across all levels of time spend going out with friends. Among those who rarely go out with friends, those in a romantic relationship have a notable drop in grades- which suggests time spend dating detracts not only from time spent with friends, but also studying.
-
-**Right:** Among single studets, those who often go out with friends have the lowest scores. In constrast, students in a romantic relationship have the lowest scores when rarely going out with friends, echoing the conclusion drawn from the previous plot.
-
-</br>
+- Singles consistently outperform dating students. 
+- Among dating students, those who rarely go out with friends have the lowest grades.
+- Among single students, those who often go out with friends have the lowest scores.
 
 ---
 
@@ -554,27 +683,161 @@ A student's participation in activities is not a strong indicator of their absen
 
 ---
 
-## Lauren - Health & Lifestyle
+## Health & Lifestyle
+
+</br>
+
+- What is the relationship between alcohol consumption (weekdays Dalc vs weekends Walc) and final grades?
+- Do students with internet access and more activities have more school absences than others?
 
 ---
 
-## Lauren - Academic Performance
+### What is the relationship between alcohol consumption (weekdays Dalc vs weekends Walc) and final grades?
+```{r alcohol_tibble, echo=FALSE, fig.align='center'}
+formatted %>%
+  group_by(weekend_alcohol) %>%
+  mutate(AvgFinalGrade = mean(final_grade)) %>%
+  count(AvgFinalGrade)
+formatted %>%
+  group_by(workday_alcohol) %>%
+  mutate(AvgFinalGrade = mean(final_grade)) %>%
+  count(AvgFinalGrade)
+```
+
+</br>
+
+Drinking has minimal effect on grades, but weekday drinkers score lower than weekend drinkers.
+
+---
+
+### Do students with internet access and more activities have more school absences than others?
+```{r internet_vs_absences, echo=FALSE, fig.align='center'}
+formatted %>%
+  group_by(internet_use, activities) %>%
+  mutate(mean_absences = mean(absences, na.rm = TRUE)) %>%
+  ggplot(aes(x = mean_absences, fill = activities)) +
+  geom_density(alpha = 0.5) +
+  facet_grid(internet_use ~ activities) +
+  labs(
+    x = "Mean Absences",
+    y = "Density",
+    title = "Distribution of Absences by Internet Use and Activities Participation",
+    fill = "Internet Use"
+  )
+```
+
+</br>
+
+Students who participate in activities are more likely to come to school than those who have internet access at home. 
+
+---
+
+## Academic Performance
+
+</br>
+
+- Do students who fail more subjects in the past continue to perform poorly in current grading periods?
+- How consistent are students’ performances across G1, G2, and G3? Is there improvement or decline over time?
+
+---
+
+### Do students who fail more subjects in the past continue to perform poorly in current grading periods?
+```{r failures_vs_grade, echo=FALSE, fig.align='center'}
+formatted %>% ggplot(aes(x = as.factor(failures), y = period1_grade)) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_jitter(color = "slateblue", size = 2, alpha = 1 / 2) +
+  labs(
+    x = "Number of Past Failures",
+    y = "Period 1 Grade",
+    title = "A Higher Number of Past Failures Leads to A Lower Period 1 Math Grade"
+  )
+formatted %>% ggplot(aes(x = as.factor(failures), y = period2_grade)) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_jitter(color = "hotpink1", size = 2, alpha = 1 / 2) +
+  labs(
+    x = "Number of Past Failures",
+    y = "Period 2 Grade",
+    title = "A Higher Number of Past Failures Leads to A Lower Period 2 Math Grade"
+  )
+formatted %>% ggplot(aes(x = as.factor(failures), y = final_grade)) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_jitter(color = "springgreen2", size = 2, alpha = 1 / 2) +
+  labs(
+    x = "Number of Past Failures",
+    y = "Final Grade",
+    title = "A Higher Number of Past Failures Leads to A Lower Final Math Grade"
+  )
+```
+ 
+<br>
+
+Students who have failed more often in the past have a lower final grade average. 
+
+---
+
+### How consistent are students’ performances across G1, G2, and G3? Is there improvement or decline over time?
+```{r math_grades_over_time, echo=FALSE, fig.align='center'}
+avg_period1 <- formatted %>% summarise(avg = mean(period1_grade, na.rm = TRUE))
+avg_period2 <- formatted %>% summarise(avg = mean(period2_grade, na.rm = TRUE))
+avg_final <- formatted %>% summarise(avg = mean(final_grade, na.rm = TRUE))
+avg_grades_long <- data.frame(
+  Period = factor(c("Period 1", "Period 2", "Final"),
+    levels = c("Period 1", "Period 2", "Final")
+  ),
+  Average_Grade = c(avg_period1$avg, avg_period2$avg, avg_final$avg)
+)
+ggplot(avg_grades_long, aes(x = Period, y = Average_Grade, group = 1)) +
+  geom_line(color = "hotpink2", linewidth = 1.5) +
+  geom_point(size = 3, color = "darkblue") +
+  labs(
+    title = "Average Math Grades Over Time",
+    x = "Grade Period",
+    y = "Average Grade"
+  ) +
+  theme_minimal()
+```
+
+</br>
+
+There was a decline in average math grade per grading period over time. 
 
 ---
 
 ## Conclusions
 
+- Strongest Predictors:
+  - Previous Grades
+  - Parental Education
+  - Weekly Study Time
+- Romance:
+  - Female grades drop
+  - Male grades improve
+- Alcohol:
+  - Weekday drinking = lower grades
+  - Weekends = no impact
+- Internet Access: 
+  - Improves performance
+  - No increase in absences
+- Insignificant Factors:
+  - School Choice
+  - Extracurriculars
+  - Family Support
+
 </br>
 
 ### Limitations
 
-- 
+- Bias: Only covers 2 schools in Portugal.
+- Subject: Focused only on math.
+- Truthfulness: Relies on student honesty.
 
 <br>
 
 ### Future Steps
 
-- 
+- Prediction: Use ML for larger population predictions.
+- Mental Health: Append data on sleep and stress.
+- Global Comparison: Compare with other regions.
 
 ---
 

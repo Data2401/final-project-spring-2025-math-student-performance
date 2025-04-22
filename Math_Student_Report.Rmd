@@ -9,12 +9,14 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-suppressMessages(library(dplyr))    # Data manipulation
-suppressMessages(library(ggplot2))  # Plotting
-suppressMessages(library(plotly))   # Plotting
-suppressMessages(library(readr))    # Reading the dataset
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
+suppressMessages(library(dplyr))
+suppressMessages(library(ggplot2))
+suppressMessages(library(plotly))
+suppressMessages(library(readr))
 suppressMessages(library(knitr))
+suppressMessages(library(GGally))
+suppressMessages(library(kableExtra))
 ```
 
 <center>
@@ -80,16 +82,28 @@ Our goal is to determine factors that have the most significant impact on studen
 
 ```{r echo=FALSE}
 library(dplyr)
+library(tibble)
+library(tidyr)
 library(plotly)
 library(DT)
+library(GGally)
+library(ggridges)
+library(kableExtra)
+library(patchwork)
+library(ggforce)
 ```
 
 We utilized the following libraries:
 
--   **dplyr** for data manipulation.
+-   **dplyr** for basic data manipulation.
+-   **DT / kableExtra** to display the data tables.
+-   **tidyr** for table pivots.
 -   **ggplot2** for creating plots.
 -   **plotly** to add interactivity to the plots.
--   **DT** to display the data prettier. 🌈
+-   **GGally** for ggparacord()'s parallel coordinates chart.
+-   **ggridges** for ridge plot.
+-   **patchwork** for side by side plots.
+-   **ggforce** for plot annotations.
 
 ------------------------------------------------------------------------
 
@@ -135,6 +149,8 @@ formatted <- raw %>% transmute(
 )
 ```
 
+Using transmute(), we changed character columns to factors, and those with levels have been ordered. We used transmute instead of mutate so original columns would drop and there would be no redundant data. There are no missing values in the dataset which was confirmed with sum(is.na()).
+
 ```{r}
 datatable(formatted, 
           options = list(pageLength = 10,
@@ -145,9 +161,11 @@ datatable(formatted,
 sum(is.na(formatted))
 ```
 
-Character columns have been converted to factors, and those with levels have been ordered.
+The "DT" package is an R interface to the Javascript library "DataTables". With help from the documentation, we enabled horizontal scrolling, auto column widths, and centered values within each column via a list of lists.
 
-There are no missing values in the dataset.
+-   **columnDefs:** passed to JS as an array of objects (list of lists). Why? Each inner list can apply a different css class or apply to a different set of columns. Options, options, options!
+-   **dt-center:** applies the center data css class
+-   **targets:** applies settings to all columns
 
 ------------------------------------------------------------------------
 
@@ -171,6 +189,8 @@ cor_df %>% ggplot(aes(Var1, Var2, fill = Correlation)) +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
 ```
 
+A quick way for us to explore the data was via correlation heatmap. Strong positive correlations are set to red, while strongly negative to blue. This plot was used as a starting point for the questions we wanted answered, as well as basic plots that could then benefit from a third degree of comparison (factors).
+
 **Intuitive relationships:**
 
 -   Grades from all three periods are strongly positively correlated.
@@ -189,15 +209,27 @@ cor_df %>% ggplot(aes(Var1, Var2, fill = Correlation)) +
 
 ### Shikyna - School & Demographics
 
+
+
 ### Shikyna - Family Background
+
+
 
 ### Thomas - Academic Support & Study Habits
 
+
+
 ### Thomas - Activities and Social Life
+
+
 
 ### Lauren - Health & Lifestyle
 
+
+
 ### Lauren - Academic Performance
+
+
 
 ------------------------------------------------------------------------
 
