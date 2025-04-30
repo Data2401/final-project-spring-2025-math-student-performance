@@ -570,24 +570,6 @@ Drinking on the weekend vs drinking on the weekday has **little to no effect on 
 ### Do students with past failures continue to perform poorly?
 
 ```{r failures_vs_grade, fig.align='center'}
-#Removed Plots for periods 1 & 2, reduce clutter, final period illustrates point
-
-# formatted %>% ggplot(aes(x = as.factor(failures), y = period1_grade)) +
-#  geom_boxplot(outlier.shape = NA) +
-#  geom_jitter(color = "slateblue", size = 2, alpha = 1 / 2) +
-#  labs(
-#    x = "Number of Past Failures",
-#    y = "Period 1 Grade",
-#    title = "A Higher Number of Past Failures Leads to A Lower Period 1 Math Grade"
-#  )
-# formatted %>% ggplot(aes(x = as.factor(failures), y = period2_grade)) +
-#  geom_boxplot(outlier.shape = NA) +
-#  geom_jitter(color = "hotpink1", size = 2, alpha = 1 / 2) +
-#  labs(
-#    x = "Number of Past Failures",
-#    y = "Period 2 Grade",
-#    title = "A Higher Number of Past Failures Leads to A Lower Period 2 Math Grade"
-#  )
 # Box plot, past failures
 formatted %>% ggplot(aes(x = as.factor(failures), y = final_grade)) +
   geom_boxplot(outlier.shape = NA, fill = "#95aab7") +
