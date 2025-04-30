@@ -12,15 +12,18 @@ output:
 ---
 
 <!-- Custom Title Slide -->
-<div style="text-align: center; padding-top: 100px;">
-  <h1>Exploring Potential Influencers of Math Student Performance</h1>
-  <p>Lauren Duvall, Shikyna William, Thomas Linden</p>
-  <p><em>`r Sys.Date()`</em></p>
-  <br><br>
-  <img src="sad-girl.webp" style="width: 1000px;">
-</div>
 
----
+::: {style="text-align: center; padding-top: 100px;"}
+<h1>Exploring Potential Influencers of Math Student Performance</h1>
+
+<p>Lauren Duvall, Shikyna William, Thomas Linden</p>
+
+<p><em>`r Sys.Date()`</em></p>
+
+<br><br> <img src="sad-girl.webp" style="width: 1000px;"/>
+:::
+
+------------------------------------------------------------------------
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
@@ -35,49 +38,50 @@ suppressMessages(library(kableExtra))
 
 ## Introduction
 
-- Dataset: [UCI Machine Learning Repository](https://www.kaggle.com/datasets/adilshamim8/math-students/data)
-- Topic: Student performance in math programs
-- Collection: 
-  - Two Portuguese secondary schools
-  - School reports and questionaires
-- Features: Academic, personal, and social aspects of a student's life
+-   Dataset: [UCI Machine Learning Repository](https://www.kaggle.com/datasets/adilshamim8/math-students/data)
+-   Topic: Student performance in math programs
+-   Collection:
+    -   Two Portuguese secondary schools
+    -   School reports and questionaires
+-   Features: Academic, personal, and social aspects of a student's life
 
 <br>
 
 ### Why Is This Interesting?
 
-- Clean, Structured and Small
-- Focused on Math Performance: More opportunity for in-depth insights
-- Rich Demographic Features: Gender, parental education, lunch type, etc
-- Equity and Policy: Can explore impact of social and economic factors
-- Portugal Differences
-  - Highschool is 3 years; 15-18 years old
-  - Each year subdivided into thirds
-  - Drinking age - 18
-  - Age of consent (relationship status) - 14
+-   Clean, Structured and Small
+-   Focused on Math Performance: More opportunity for in-depth insights
+-   Rich Demographic Features: Gender, parental education, lunch type, etc
+-   Equity and Policy: Can explore impact of social and economic factors
+-   Portugal Differences
+    -   Highschool is 3 years; 15-18 years old
+    -   Each year subdivided into thirds
+    -   Drinking age - 18
+    -   Age of consent (relationship status) - 14
 
----
+------------------------------------------------------------------------
 
 ## Objective
 
-- Identify significant influencers of math performance
-- Test the data to see if reality rejects our hypotheses
+-   Identify significant influencers of math performance
+-   Test the data to see if reality rejects our hypotheses
 
 <br>
 
 ### Categories Analyzed
 
-- Logistics & School Choice
-- School & Demographics
-- Family Background
-- Academic Support & Study Habits
-- Activities & Social Life
-- Health & Lifestyle
-- Academic Performance
+-   Logistics & School Choice
+-   School & Demographics
+-   Family Background
+-   Academic Support & Study Habits
+-   Activities & Social Life
+-   Health & Lifestyle
+-   Academic Performance
 
----
+------------------------------------------------------------------------
 
 ## Load Packages
+
 ```{r libraries, echo=FALSE, results = 'hide'}
 library(dplyr)
 library(tibble)
@@ -103,9 +107,10 @@ library(ggforce)
 -   **patchwork** for side by side plots.
 -   **ggforce** for plot annotations.
 
----
+------------------------------------------------------------------------
 
 ## Data Cleaning
+
 ```{r formatting, echo=FALSE, results='hide'}
 raw <- read.csv("Math-Students.csv")
 # Rename cols, convert to factors, add any necessary levels, transmute to drop old columns
@@ -147,8 +152,8 @@ formatted <- raw %>% transmute(
 sum(is.na(formatted))
 ```
 
-- transmute(): Factors and levels.
-- Missing values?
+-   transmute(): Factors and levels.
+-   Missing values?
 
 ```{r datatable, echo=FALSE}
 datatable(formatted,
@@ -162,26 +167,27 @@ datatable(formatted,
 )
 ```
 
----
+------------------------------------------------------------------------
 
 ## Key Terms
 
 <br>
 
-- **School**: Either Gabriel Pereira or Mousinho da Silveira
-- **Address**: Urban or Rural 
-- **Attendance Reason**: Close to 'home', school 'reputation', 'course' preference or 'other'
-- **Extra Paid Classes**: Extra paid classes within the course subject (Math or Portuguese). Yes or No.
-- **Nursery School**: Portugal's version of Pre-School. Attended? Yes or No.
-- **Family Support**: Family educational suppor. Yes or No. 
-- **Family Relationship**: Quality of family relationships. Scale from 1-5, very bad to excellent. 
-- **Workday Alcohol**: How much drinking during the week. Scale from 1-5, low to high level of drinking. 
-- **Weekend Alcohol**: How much drinking during the weekend. Scale from 1-5, low to high level of drinking. 
-- **Health**: Current health status. Scale from 1-5, very bad to very good. 
+-   **School**: Either Gabriel Pereira or Mousinho da Silveira
+-   **Address**: Urban or Rural
+-   **Attendance Reason**: Close to 'home', school 'reputation', 'course' preference or 'other'
+-   **Extra Paid Classes**: Extra paid classes within the course subject (Math or Portuguese). Yes or No.
+-   **Nursery School**: Portugal's version of Pre-School. Attended? Yes or No.
+-   **Family Support**: Family educational suppor. Yes or No.
+-   **Family Relationship**: Quality of family relationships. Scale from 1-5, very bad to excellent.
+-   **Workday Alcohol**: How much drinking during the week. Scale from 1-5, low to high level of drinking.
+-   **Weekend Alcohol**: How much drinking during the weekend. Scale from 1-5, low to high level of drinking.
+-   **Health**: Current health status. Scale from 1-5, very bad to very good.
 
----
+------------------------------------------------------------------------
 
 ## Exploratory Data Analysis
+
 ```{r correlation, echo=FALSE, fig.align='center'}
 # Make correlation table
 cor_df <- formatted %>%
@@ -212,18 +218,19 @@ Missing variables: Factors
 -   Travel time is inversely proportional to study time.
 -   Number of failures is positively correlated to travel time; negatively correlated with study time.
 
----
+------------------------------------------------------------------------
 
 ## School & Demographics
 
 <br>
 
-- Do students from different schools show significant differences in final performance? INSIGNIFICANT
-- Is there an interaction between romantic relationships and gender on final grade?
+-   Do students from different schools show significant differences in final performance? INSIGNIFICANT
+-   Is there an interaction between romantic relationships and gender on final grade?
 
----
+------------------------------------------------------------------------
 
 ### Do students from different schools show significant differences in final grade?
+
 ```{r compare_schools, echo=FALSE, fig.align='center'}
 # Prepare the data
 plot_data <- formatted %>%
@@ -268,9 +275,10 @@ formatted %>%
 
 The selection of school has no evidence of affecting student performance.
 
----
+------------------------------------------------------------------------
 
 ### Is there an interaction between romantic relationships and gender on the final grade?
+
 ```{r romance_gender, echo=FALSE, fig.align='center'}
 formatted %>%
   ggplot(aes(x = romantic, y = final_grade, fill = sex)) +
@@ -299,23 +307,24 @@ formatted %>%
 
 <br>
 
-There is correlation between relationship status and final grades when comparing by gender. 
+There is correlation between relationship status and final grades when comparing by gender.
 
 Dating Females have a lower median, minimum, and IQR.
 
 Dating Males are affected in the opposite manner.
 
----
+------------------------------------------------------------------------
 
 ## Family Background
 
 <br>
 
-- Does having family educational support at home help students perform better in school?
+-   Does having family educational support at home help students perform better in school?
 
----
+------------------------------------------------------------------------
 
 ### Does having family educational support at home help students perform better in school?
+
 ```{r family_support_better_school, echo=FALSE, fig.align='center'}
 formatted %>%
   ggplot(aes(x = as.factor(final_grade), fill = family_support)) +
@@ -342,16 +351,16 @@ formatted %>%
 
 For every final grade, there are more students that have educational support. Students with support were oversampled, so this plot of student counts does not indicate anything.
 
----
+------------------------------------------------------------------------
 
 ## Academic Support & Study Habits
 
 </br>
 
-- Which factors are most predictive of final grades?
-- Does weekly study time affect performance consistently across all terms?
+-   Which factors are most predictive of final grades?
+-   Does weekly study time affect performance consistently across all terms?
 
----
+------------------------------------------------------------------------
 
 ### Which factors are most predictive of final grades?
 
@@ -394,6 +403,7 @@ significant_table <- factor_effects %>%
   kable_styling(full_width = FALSE) %>%
   scroll_box(width = "100%", height = "300px")
 ```
+
 ```{r significance_tables, results='asis', echo=FALSE}
 library(kableExtra)
 library(htmltools)
@@ -427,9 +437,10 @@ browsable(
 
 Compared all factors' average to overall average.
 
----
+------------------------------------------------------------------------
 
 ### Which factors are most predictive of final grades?
+
 ```{r avg_by_p_edu, echo = FALSE}
 education_vs_means <- formatted %>% # Combines education levels and average final grades for geom_segment
   mutate(
@@ -440,6 +451,7 @@ education_vs_means <- formatted %>% # Combines education levels and average fina
   group_by(both_edu) %>%
   summarise(mean_grade = mean(final_grade, na.rm = TRUE))
 ```
+
 ```{r parent_ridge, echo=FALSE, fig.align='center'}
 parent_ridge <- formatted %>%
   mutate(
@@ -467,6 +479,7 @@ parent_ridge <- formatted %>%
   ) +
   coord_cartesian(ylim = c(2.57, 9.25), xlim = c(0, 20))
 ```
+
 ```{r parent_box, echo=FALSE, fig.align='center'}
 parent_box <- formatted %>%
   ggplot(aes(x = factor(family_relationship), y = final_grade, fill = factor(family_support, levels = c("no","yes"), labels = c("No","Yes")))) +
@@ -481,6 +494,7 @@ parent_box <- formatted %>%
     "Yes" = "#eac39c"
   ))
 ```
+
 ```{r parent_side_by_side, echo=FALSE, fig.width = 16, fig.align='center', out.width='70%'}
 (parent_ridge | plot_spacer() | parent_box) + plot_layout(widths = c(1, 0.1, 1))
 ```
@@ -491,9 +505,10 @@ parent_box <- formatted %>%
 
 **Right:** No relationship between final grade and either family relationship quality / educational support.
 
----
+------------------------------------------------------------------------
 
 ### Which factors are most predictive of final grades?
+
 ```{r study_internet_box, echo=FALSE, fig.align='center', out.width='40%'}
 formatted %>% # Internet helps studying
   ggplot(aes(x = factor(study_time), y = final_grade, fill = factor(internet_use, levels = c("no", "yes"), labels = c("No", "Yes")))) +
@@ -519,12 +534,13 @@ formatted %>% # Internet helps studying
 
 Final grades are marginally better for students with internet access at home.
 
----
+------------------------------------------------------------------------
 
 ### Does weekly study time affect performance consistently across all terms?
+
 ```{r study_per_period_box, echo=FALSE, fig.align='center'}
 long_grade_data <- formatted %>% # More studying is better regardless of period
-  pivot_longer(cols = starts_with("period"), names_to = "period", values_to = "grade") %>%
+  pivot_longer(cols = c(period1_grade, period2_grade, final_grade), names_to = "period", values_to = "grade") %>% 
   mutate(period = recode(period,
     period1_grade = "Period 1",
     period2_grade = "Period 2",
@@ -554,10 +570,11 @@ study_boxes <- long_grade_data %>% ggplot(aes(x = factor(study_time), y = grade)
   theme_linedraw() +
   theme(axis.title.x = element_text(size = 15), title = element_text(size = 15))
 ```
+
 ```{r study_across_periods_para, echo=FALSE, fig.align='center'}
 study_para <- formatted %>% # More study time is better for overall grade trend, sharp drop for (4), maybe overconfidence or too much studying lowers retention of key information.
   select(period1_grade, period2_grade, final_grade, study_time) %>%
-  pivot_longer(cols = starts_with("period"), names_to = "period", values_to = "grade") %>%
+  pivot_longer(cols = c(period1_grade, period2_grade, final_grade), names_to = "period", values_to = "grade") %>% 
   group_by(study_time, period) %>%
   summarise(mean_grade = mean(grade), .groups = "drop") %>%
   ggplot(aes(x = period, y = mean_grade, group = study_time, color = factor(study_time, levels = sort(unique(study_time), decreasing = TRUE)))) +
@@ -577,7 +594,7 @@ study_para <- formatted %>% # More study time is better for overall grade trend,
 
 exclude_para <- formatted %>%
   select(period1_grade, period2_grade, final_grade, study_time) %>%
-  pivot_longer(cols = starts_with("period"), names_to = "period", values_to = "grade") %>%
+  pivot_longer(cols = c(period1_grade, period2_grade, final_grade), names_to = "period", values_to = "grade") %>% 
   filter(grade > 0) %>% # 🔍 filter out failing/zero grades
   group_by(study_time, period) %>%
   summarise(mean_grade = mean(grade), .groups = "drop") %>%
@@ -603,6 +620,7 @@ exclude_para <- formatted %>%
   scale_y_continuous(breaks = seq(10, 13, by = .5)) +
   theme(axis.title.x = element_text(size = 15), axis.title.y = element_text(size = 15))
 ```
+
 ```{r study_side_by_side, echo=FALSE, fig.width = 16, fig.height = 6, fig.align='center', out.width='45%'}
 study_boxes
 (study_para | plot_spacer() | exclude_para) + plot_layout(widths = c(1, 0.1, 1))
@@ -614,18 +632,19 @@ study_boxes
 
 **Bottom Right:** Excludes failed students from average grade calculations- all trends now positive.
 
----
+------------------------------------------------------------------------
 
 ## Activities and Social Life
 
 </br>
 
-- Do romantic relationships affect student performance?
-- Is there a link between extracurricular activities and absences?
+-   Do romantic relationships affect student performance?
+-   Is there a link between extracurricular activities and absences?
 
----
+------------------------------------------------------------------------
 
 ### Do romantic relationships affect student performance?
+
 ```{r romance_plot, echo=FALSE, fig.width = 16, fig.height = 8, fig.align='center', out.width='70%'}
 rom1 <- formatted %>%
   ggplot(aes(x = factor(go_out_w_friends), y = final_grade, fill = factor(romantic, levels = c("no","yes"), labels = c("Single","Dating")))) +
@@ -649,13 +668,14 @@ rom2 <- formatted %>%
 
 </br>
 
-- Singles consistently outperform dating students. 
-- Among dating students, those who rarely go out with friends have the lowest grades.
-- Among single students, those who often go out with friends have the lowest scores.
+-   Singles consistently outperform dating students.
+-   Among dating students, those who rarely go out with friends have the lowest grades.
+-   Among single students, those who often go out with friends have the lowest scores.
 
----
+------------------------------------------------------------------------
 
 ### Is there a link between extracurricular activities and absences?
+
 ```{r activities_absences, echo=FALSE, fig.align='center', out.width='45%'}
 formatted %>%
   mutate(activity_boolean = as.numeric(activities == "yes")) %>%
@@ -681,18 +701,19 @@ formatted %>%
 
 A student's participation in activities is not a strong indicator of their absence from classes.
 
----
+------------------------------------------------------------------------
 
 ## Health & Lifestyle
 
 </br>
 
-- What is the relationship between alcohol consumption (weekdays Dalc vs weekends Walc) and final grades?
-- Do students with internet access and more activities have more school absences than others?
+-   What is the relationship between alcohol consumption (weekdays Dalc vs weekends Walc) and final grades?
+-   Do students with internet access and more activities have more school absences than others?
 
----
+------------------------------------------------------------------------
 
 ### What is the relationship between alcohol consumption (weekdays Dalc vs weekends Walc) and final grades?
+
 ```{r alcohol_tibble, echo=FALSE, fig.align='center'}
 formatted %>%
   group_by(weekend_alcohol) %>%
@@ -708,9 +729,10 @@ formatted %>%
 
 Drinking has minimal effect on grades, but weekday drinkers score lower than weekend drinkers.
 
----
+------------------------------------------------------------------------
 
 ### Do students with internet access and more activities have more school absences than others?
+
 ```{r internet_vs_absences, echo=FALSE, fig.align='center'}
 formatted %>%
   group_by(internet_use, activities) %>%
@@ -728,20 +750,21 @@ formatted %>%
 
 </br>
 
-Students who participate in activities are more likely to come to school than those who have internet access at home. 
+Students who participate in activities are more likely to come to school than those who have internet access at home.
 
----
+------------------------------------------------------------------------
 
 ## Academic Performance
 
 </br>
 
-- Do students who fail more subjects in the past continue to perform poorly in current grading periods?
-- How consistent are students’ performances across G1, G2, and G3? Is there improvement or decline over time?
+-   Do students who fail more subjects in the past continue to perform poorly in current grading periods?
+-   How consistent are students’ performances across G1, G2, and G3? Is there improvement or decline over time?
 
----
+------------------------------------------------------------------------
 
 ### Do students who fail more subjects in the past continue to perform poorly in current grading periods?
+
 ```{r failures_vs_grade, echo=FALSE, fig.align='center'}
 formatted %>% ggplot(aes(x = as.factor(failures), y = period1_grade)) +
   geom_boxplot(outlier.shape = NA) +
@@ -768,14 +791,15 @@ formatted %>% ggplot(aes(x = as.factor(failures), y = final_grade)) +
     title = "A Higher Number of Past Failures Leads to A Lower Final Math Grade"
   )
 ```
- 
+
 <br>
 
-Students who have failed more often in the past have a lower final grade average. 
+Students who have failed more often in the past have a lower final grade average.
 
----
+------------------------------------------------------------------------
 
 ### How consistent are students’ performances across G1, G2, and G3? Is there improvement or decline over time?
+
 ```{r math_grades_over_time, echo=FALSE, fig.align='center'}
 avg_period1 <- formatted %>% summarise(avg = mean(period1_grade, na.rm = TRUE))
 avg_period2 <- formatted %>% summarise(avg = mean(period2_grade, na.rm = TRUE))
@@ -799,47 +823,47 @@ ggplot(avg_grades_long, aes(x = Period, y = Average_Grade, group = 1)) +
 
 </br>
 
-There was a decline in average math grade per grading period over time. 
+There was a decline in average math grade per grading period over time.
 
----
+------------------------------------------------------------------------
 
 ## Conclusions
 
-- Strongest Predictors:
-  - Previous Grades
-  - Parental Education
-  - Weekly Study Time
-- Romance:
-  - Female grades drop
-  - Male grades improve
-- Alcohol:
-  - Weekday drinking = lower grades
-  - Weekends = no impact
-- Internet Access: 
-  - Improves performance
-  - No increase in absences
-- Insignificant Factors:
-  - School Choice
-  - Extracurriculars
-  - Family Support
+-   Strongest Predictors:
+    -   Previous Grades
+    -   Parental Education
+    -   Weekly Study Time
+-   Romance:
+    -   Female grades drop
+    -   Male grades improve
+-   Alcohol:
+    -   Weekday drinking = lower grades
+    -   Weekends = no impact
+-   Internet Access:
+    -   Improves performance
+    -   No increase in absences
+-   Insignificant Factors:
+    -   School Choice
+    -   Extracurriculars
+    -   Family Support
 
 </br>
 
 ### Limitations
 
-- Bias: Only covers 2 schools in Portugal.
-- Subject: Focused only on math.
-- Truthfulness: Relies on student honesty.
+-   Bias: Only covers 2 schools in Portugal.
+-   Subject: Focused only on math.
+-   Truthfulness: Relies on student honesty.
 
 <br>
 
 ### Future Steps
 
-- Prediction: Use ML for larger population predictions.
-- Mental Health: Append data on sleep and stress.
-- Global Comparison: Compare with other regions.
+-   Prediction: Use ML for larger population predictions.
+-   Mental Health: Append data on sleep and stress.
+-   Global Comparison: Compare with other regions.
 
----
+------------------------------------------------------------------------
 
 ## References
 
